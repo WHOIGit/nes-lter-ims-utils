@@ -1,0 +1,99 @@
+---
+title: "convert-matlab-underway"
+author: "Kate Morkeski"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Convert .mat underway file to .csv in order to use GPS data
+
+# load required packages
+
+```{r}
+
+library(here)
+library(R.matlab)
+library(ggplot2)
+#remotes::install_github("WHOIGit/ediutilities")
+library(ediutilities)
+library(lubridate)
+library(readr)
+
+```
+
+# read mat file
+
+```{r}
+
+here("nes-lter-ims-utils")
+
+# read in mat file and convert to dataframe
+ar80 <- readMat(here("data", "input", "AR80.mat"))
+
+speed <- as.vector(unlist(ar80$out[1]))
+heading <- as.vector(unlist(ar80$out[2]))
+timep <- as.vector(unlist(ar80$out[3]))
+pitch <- as.vector(unlist(ar80$out[4]))
+roll <- as.vector(unlist(ar80$out[5]))
+heave <- as.vector(unlist(ar80$out[6]))
+lat <- as.vector(unlist(ar80$out[7]))
+lon <- as.vector(unlist(ar80$out[8]))
+
+und <- data.frame(speed, heading, timep, pitch, roll, heave, lat, lon)
+
+und$time <- as.POSIXct((und$timep - 719529)*86400, tz = "UTC")
+
+# add cruise for plotting with ediutilities
+und$cruise <- as.character("AR80")
+
+# read in 1-minute proc underway file 
+ar80day1 <- read.csv(here("data", "input", "AR231117_1343.csv"), skip = 1)
+# add cruise for plotting with ediutilities
+ar80day1$cruise <- as.character("AR80proc")
+# format date
+ar80day1$datetime <- paste(ar80day1$DATE_GMT, ar80day1$TIME_GMT)
+ar80day1$datetime <- ymd_hms(ar80day1$datetime)
+
+```
+
+# check time conversion
+
+```{r}
+
+ggplot(und, aes(x = time, y = lat))+geom_line()+geom_point(data = ar80day1, aes(x = datetime, y = Dec_LAT))
+ggplot(und, aes(x = time, y = lon))+geom_line()+geom_point(data = ar80day1, aes(x = datetime, y = Dec_LON))
+#ggplot(und, aes(x = lon, y = lat))+geom_point()
+
+map_locs(df = und, xvar = "lon", yvar = "lat", region = "transect")
+map_locs(df = ar80day1, xvar = "Dec_LON", yvar = "Dec_LAT", region = "transect")
+
+```
+# subset data to 1 minute
+
+```{r}
+
+und$seconds <- second(und$time)
+und$seconds <- trunc(und$seconds)
+# take measurements collected each minute at 55 seconds to match proc underway file and remove unneeded columns
+und1min <- subset(und, seconds == 55, select = c(speed, heading, pitch, roll, heave, lat, lon, time))
+
+und <- subset(und, select = c(speed, heading, pitch, roll, heave, lat, lon, time))
+
+```
+
+# write output files
+
+```{r}
+
+write_csv(und1min, here("data", "output", "AR80underway1min.csv"))
+
+write_csv(und, here("data", "output", "AR80underway1sec.csv"))
+
+```
+
+
+

@@ -134,8 +134,15 @@ def check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number )
     # Loop through each sensor and process the Coefficients - need to get the tags under the Coefficient tag and verify those tags
     for element in sensor_element:
         buffer.write(f"{element.tag}: {element.text}\n")
-        calib_element = xmlcon_root.find('.//' + element.tag)
         coef_index = 0         # coefficient tag equation index
+        
+        calib_elements = xmlcon_root.findall('.//' + element.tag)
+        for element in calib_elements:
+           calib_serial = element.find('SerialNumber')
+           if serial_number == calib_serial.text:
+               calib_element = element
+               print(f"serial number: {serial_number}")
+
         # for each tag in sensor
         for calib in calib_element:                        
             if calib.tag == 'Coefficients' or calib.tag == 'CalibrationCoefficients':
@@ -161,6 +168,9 @@ def check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number )
                             ctag = ctags[coef_index]  # index refers to equation 0 or 1 occurance
                         else:
                             ctag = ctags[0]
+                        print(f"len(ctags) {len(ctags)}")
+                        print(f"ctag {ctag}")
+                        print(f"coef_index {coef_index}")
                         if ctag is not None:
                             if float(coef.text) != float(ctag.text):
                                 buffer.write(f"Check FAILED: calibration {coef.tag} and {coef.text} do not match values in calib file: {ctag.text}\n")

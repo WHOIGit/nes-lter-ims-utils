@@ -1,9 +1,7 @@
 # Protocol for reviewing processed CTD data prior to upload to RDS for NES-LTER REST API
-# Open each xmlcon file, step through each sensor, comparing cal values to respective values in cal files.
-
+# Open xmlcon file, step through each sensor, comparing cal values to respective values in cal files.
 
 import argparse
-from pickle import FALSE
 import xml.etree.ElementTree as ET
 import urllib.request
 from urllib.parse import urlparse, urlunparse
@@ -242,7 +240,10 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
         try:
             parsed_date = datetime.strptime(calib_date.text, "%d-%b-%y")
         except:
-            parsed_date = datetime.strptime(calib_date.text, "%m/%d/%Y")
+            try:
+                parsed_date = datetime.strptime(calib_date.text, "%m/%d/%Y")
+            except:
+                parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
         # Format the parsed date as "MM/DD/YY"
         formatted_date_str = parsed_date.strftime("%m/%d/%Y")
                     

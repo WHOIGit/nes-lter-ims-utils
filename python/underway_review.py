@@ -1,4 +1,4 @@
-# Protocol for reviewing processed CTD data prior to upload to RDS for NES-LTER REST API
+# Protocol for reviewing processed Underway Calibration data prior to upload to RDS for NES-LTER REST API
 # Open xmlcon file, step through each sensor, comparing cal values to respective values in cal files.
 
 import argparse
@@ -30,7 +30,7 @@ def get_date_from_filename(file_name):
     except ValueError:
         return datetime.min  # Return the minimum date if the format is not as expected
 
-def find_calib_file_with_serial_number(url, serial_number):
+def find_calib_file_with_serial_number(url, serial_number, sensor_id):
     # url can be https or a local directory path
     try:
         response = requests.get(url)
@@ -61,8 +61,12 @@ def find_calib_file_with_serial_number(url, serial_number):
 
     for file_name in new_file_names:
         if file_name.lower().endswith(".xml") and str(serial_number) in file_name:
-            # there can be more than one file name that matches
-            matching_files.append(file_name)
+            if sensor_id.tag == "TemperatureSensor" and "T"+str(serial_number) in file_name:               
+                matching_files.append(file_name)
+            elif sensor_id.tag == "ConductivitySensor" and "C"+str(serial_number) in file_name:               
+                matching_files.append(file_name)
+            elif not sensor_id:                     # match if sensors not temp or conduct
+                matching_files.append(file_name)
             
     if not matching_files:
         for file_name in new_file_names:
@@ -77,6 +81,7 @@ def find_calib_file_with_serial_number(url, serial_number):
     newest_file = max(matching_files, key=get_date_from_filename)
     file_url = os.path.join(url, newest_file)
     file_url = file_url.replace("\\", "/")
+    
     return file_url
 
 
@@ -113,6 +118,7 @@ def get_data(file):
                       for page_num in range(pdf_document.page_count):
                           page = pdf_document[page_num]
                           text += page.get_text()
+
            if text == "":
                buffer.write(f"PDF file is NOT in machine readable format: {file}\n")
            return text
@@ -243,12 +249,15 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
             try:
                 parsed_date = datetime.strptime(calib_date.text, "%m/%d/%Y")
             except:
-                parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
-                
+                try:
+                    parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
+                except:
+                    parsed_date = datetime.strptime(calib_date.text, "%d %b %Y")
+        
         # remove leading zero from month and day
         month = str(int(parsed_date.strftime("%m")))
         day = str(int(parsed_date.strftime("%d")))  
-        year = parsed_date.strftime("%Y")        
+        year = parsed_date.strftime("%Y")
         # Format the parsed date as "MM/DD/YY"
         formatted_date_str = f"{month}/{day}/{year}"
                     
@@ -280,7 +289,7 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                 if calib.text in sensor_root:
                     buffer.write(f"Value check passed\n")
                 else:
-                    buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} not found in calib file\n")
+                    buffer.write(f"Check FAILED: calibration {calib.tag} = {calib.text} not found in calib file\n")
                     if serial_number not in failed_instruments:
                         failed_instruments.append(serial_number)
 
@@ -288,8 +297,6 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
 def confirm_calibration(xmlcon_file_path, calib_file_path):
     buffer.write(f"The following file is used to check the calibration values:\n")
     buffer.write(f"Path: {xmlcon_file_path}\n")
-    # get the ctd/doc dir for this cruise
-    #doc_dir = get_doc_dir(xmlcon_file_path)
    
     # read in the xmlcon file in the ctd directory
     xmlcon_root = get_data(xmlcon_file_path)
@@ -305,8 +312,12 @@ def confirm_calibration(xmlcon_file_path, calib_file_path):
             if serial_number is not None:
                 buffer.write(f"_____________________________________________________________________________________________________\n")
                 
+                # get either the TemperatureSensor or ConductivitySensor id 
+                sensor_id = sensor_element.find('.//TemperatureSensor')
+                if not sensor_id:
+                    sensor_id = sensor_element.find('.//ConductivitySensor')
                 # Look for sensor serial number .xml file in the calibration directory
-                sensor_file = find_calib_file_with_serial_number(calib_file_path, serial_number)
+                sensor_file = find_calib_file_with_serial_number(calib_file_path, serial_number, sensor_id)
                 if sensor_file:
                     buffer.write(f"Calibration file found: {sensor_file}\n")
                     buffer.write(f"Sensor SerialNumber: {serial_number}\n")
@@ -370,20 +381,21 @@ def review_data(xmlcon_file_path, calib_file_path):
     summary.write(f"\n")
     summary_content = summary.getvalue()
     summary.close()
-    with open("{}/{}_ctd_calibration_results.txt".format(current_dir, cruise_name), "w") as file:
+    with open("{}/{}_underway_calibration_results.txt".format(current_dir, cruise_name), "w") as file:
         file.write(summary_content)
             
     buffer_content = buffer.getvalue()
     buffer.close()
-    with open("{}/{}_ctd_calibration_results.txt".format(current_dir, cruise_name), "a") as file:
+    with open("{}/{}_underway_calibration_results.txt".format(current_dir, cruise_name), "a") as file:
         file.write(buffer_content)
     
 
 def main():
     # If paths are on Google Docs, you must download the files to your local pc file system.
-    parser = argparse.ArgumentParser(description='Review CTD data prior to upload to RDS for NES-LTER REST API.')
-    parser.add_argument('path', type=str, help='Path to ctd xmlcon directory or file')
-    parser.add_argument('calib', type=str, help='Path to Calibration file directory')   # typically is ctd/doc dir
+    parser = argparse.ArgumentParser(description='Review Underway data prior to upload to RDS for NES-LTER REST API.')
+    # Only works for Endeavor Cruises. Armstrong Cruises do not have XMLCON files in their Underway data dirs
+    parser.add_argument('path', type=str, help='Path to Underway xmlcon directory or file')      # typically is tsg/raw
+    parser.add_argument('calib', type=str, help='Path to Underway Calibration file directory')   # typically is tsg/docs/calibrations
     
     args = parser.parse_args()
     

@@ -342,7 +342,22 @@ def compare_all_xmlcon(xmlcon_file_path):
         return False
     else:
         return files[0]
-           
+
+def check_btl_files(xmlcon_file_path):
+    # for every .hdr file, check if there's a btl file with the same name
+    warning = False
+    for hdr_file in glob(os.path.join(xmlcon_file_path, '*.hdr')):
+        if not os.path.basename(hdr_file).startswith(('d', 'u')):    
+            btl_file = hdr_file[:-4] + '.btl'  # Replace the .hdr extension with .btl    
+            # Check if the .btl file exists
+            if not os.path.exists(btl_file):
+                buffer.write(f"WARNING: No corresponding .btl file found for {hdr_file}\n")
+                warning = True
+            
+    if not warning:
+        buffer.write(f"Verified a corresponding .btl file for each .hdr file in: {xmlcon_file_path}\n")
+    buffer.write(f"\n")
+
 
 def review_data(xmlcon_file_path, calib_file_path):
     
@@ -360,9 +375,12 @@ def review_data(xmlcon_file_path, calib_file_path):
         if result_file:
             buffer.write(f"All .XMLCON files match!!!!\n")
             buffer.write(f"\n")
+            check_btl_files(xmlcon_file_path)
             confirm_calibration(result_file, calib_file_path)
         else:
             buffer.write(f"Reference README to see if there's a legitimate reason.\n")
+            buffer.write(f"\n")
+            check_btl_files(xmlcon_file_path)
             
     summary.write(f"Summary Report\n")
     summary.write(f"List of Failed Instrument Serial Numbers: \n")

@@ -28,7 +28,16 @@ def get_date_from_filename(file_name):
     try:
         return datetime.strptime(date_str, "%Y%m%d")
     except ValueError:
-        return datetime.min  # Return the minimum date if the format is not as expected
+        date_pattern = re.compile(r'(\d{2}[A-Za-z]{3}\d{2})')   #date formats DDMMMYY
+        match = date_pattern.search(file_name)
+        if match:
+            # Extract the date string from the filename
+            date_str = match.group(1)
+            # Convert the date string to a datetime object
+            return datetime.strptime(date_str, '%d%b%y')
+        else:
+            # Return a default value if no date is found
+            return datetime.min
 
 def find_calib_file_with_serial_number(url, serial_number):
     # url can be https or a local directory path
@@ -66,7 +75,7 @@ def find_calib_file_with_serial_number(url, serial_number):
             
     if not matching_files:
         for file_name in new_file_names:
-            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name:
+            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name and 'Repair' not in file_name:
                 # there can be more than one file name that matches
                 matching_files.append(file_name)
 
@@ -83,7 +92,8 @@ def find_calib_file_with_serial_number(url, serial_number):
 def find_xmlcon_files(url):
     matching_files = []
     for file in glob(os.path.join(url, '*.XMLCON')):
-        matching_files.append(file)
+        if 'L011B11' not in file:     #en668
+            matching_files.append(file)
     return matching_files
 
 def get_data(file):
@@ -228,6 +238,7 @@ def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number )
     
 def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
     for element in sensor_element:
+        date_error = False
         buffer.write(f"{element.tag}: {element.text}\n")
         calib_elements = xmlcon_root.findall('.//' + element.tag)
         for element in calib_elements:
@@ -243,27 +254,32 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
             try:
                 parsed_date = datetime.strptime(calib_date.text, "%m/%d/%Y")
             except:
-                parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
+                try:
+                    parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
+                except:
+                    buffer.write(f"Date check failed, invalid date string: {calib_date.text}\n")
+                    date_error = True
                 
-        # remove leading zero from month and day
-        month = str(int(parsed_date.strftime("%m")))
-        day = str(int(parsed_date.strftime("%d")))  
-        year = parsed_date.strftime("%Y")        
-        # Format the parsed date as "MM/DD/YY"
-        formatted_date_str = f"{month}/{day}/{year}"
+        if not date_error:
+            # remove leading zero from month and day
+            month = str(int(parsed_date.strftime("%m")))
+            day = str(int(parsed_date.strftime("%d")))  
+            year = parsed_date.strftime("%Y")        
+            # Format the parsed date as "MM/DD/YY"
+            formatted_date_str = f"{month}/{day}/{year}"
                     
-        if formatted_date_str in sensor_root:
-            buffer.write(f"Date check passed\n")
-        else:
-            formatted_date_str = parsed_date.strftime("%B %d, %Y")
             if formatted_date_str in sensor_root:
                 buffer.write(f"Date check passed\n")
-            elif "Date" not in sensor_root:
-                buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
             else:
-                buffer.write(f"Date check failed, expecting {formatted_date_str}\n")   # some pdf files contain images which cannot be read
-                if serial_number not in failed_instruments:
-                    failed_instruments.append(serial_number)
+                formatted_date_str = parsed_date.strftime("%B %d, %Y")
+                if formatted_date_str in sensor_root:
+                    buffer.write(f"Date check passed\n")
+                elif "Date" not in sensor_root:
+                    buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
+                else:
+                    buffer.write(f"Date check failed, expecting {formatted_date_str}\n")   # some pdf files contain images which cannot be read
+                    if serial_number not in failed_instruments:
+                        failed_instruments.append(serial_number)
                
         # for each calibration tag in sensor
         for calib in calib_element:    
@@ -344,11 +360,14 @@ def compare_all_xmlcon(xmlcon_file_path):
         return files[0]
 
 def check_btl_files(xmlcon_file_path):
+    if '\\raw' in xmlcon_file_path:
+        # btl files are located in /proc dir
+        xmlcon_file_path = xmlcon_file_path.replace(r'\raw', r'\proc')
     # for every .hdr file, check if there's a btl file with the same name
     warning = False
     for hdr_file in glob(os.path.join(xmlcon_file_path, '*.hdr')):
-        if not os.path.basename(hdr_file).startswith(('d', 'u')):    
-            btl_file = hdr_file[:-4] + '.btl'  # Replace the .hdr extension with .btl    
+        if (not os.path.basename(hdr_file).startswith(('d', 'u'))) and ('_u.' not in os.path.basename(hdr_file)):    
+            btl_file = hdr_file[:-4] + '.btl'  # Replace the .hdr extension with .btl
             # Check if the .btl file exists
             if not os.path.exists(btl_file):
                 buffer.write(f"WARNING: No corresponding .btl file found for {hdr_file}\n")

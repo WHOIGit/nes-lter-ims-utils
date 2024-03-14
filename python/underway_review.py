@@ -71,8 +71,13 @@ def find_calib_file_with_serial_number(url, serial_number, sensor_id):
     if not matching_files:
         for file_name in new_file_names:
             if file_name.lower().endswith(".pdf") and str(serial_number) in file_name:
-                # there can be more than one file name that matches
-                matching_files.append(file_name)
+                if sensor_id:
+                    if sensor_id.tag == "TemperatureSensor" and "_T"+str(serial_number) in file_name:               
+                        matching_files.append(file_name)
+                    elif sensor_id.tag == "ConductivitySensor" and "_C"+str(serial_number) in file_name:               
+                        matching_files.append(file_name)
+                else:                    
+                    matching_files.append(file_name)
 
     if not matching_files:
         return None
@@ -252,7 +257,10 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                 try:
                     parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
                 except:
-                    parsed_date = datetime.strptime(calib_date.text, "%d %b %Y")
+                    try:
+                        parsed_date = datetime.strptime(calib_date.text, "%d %b %Y")
+                    except:
+                        parsed_date = datetime.strptime(calib_date.text, "%d-%b-%Y")
         
         # remove leading zero from month and day
         month = str(int(parsed_date.strftime("%m")))
@@ -264,31 +272,36 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
         if formatted_date_str in sensor_root:
             buffer.write(f"Date check passed\n")
         else:
-            formatted_date_str = parsed_date.strftime("%B %d, %Y")
+            #formatted_date_str = parsed_date.strftime("%B %d, %Y")
+            formatted_date_str = f"{parsed_date.strftime('%B')} {parsed_date.day}, {parsed_date.year}"
             if formatted_date_str in sensor_root:
                 buffer.write(f"Date check passed\n")
-            elif "Date" not in sensor_root:
-                buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
-            else:
-                buffer.write(f"Date check failed, expecting {formatted_date_str}\n")   # some pdf files contain images which cannot be read
-                if serial_number not in failed_instruments:
-                    failed_instruments.append(serial_number)
+            else: 
+                formatted_date_str = parsed_date.strftime("%d-%b-%y")
+                if formatted_date_str in sensor_root:
+                    buffer.write(f"Date check passed\n") 
+                elif "Date" not in sensor_root:
+                    buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
+                else:
+                    buffer.write(f"Date check failed, expecting {formatted_date_str}\n")   # some pdf files contain images which cannot be read
+                    if serial_number not in failed_instruments:
+                        failed_instruments.append(serial_number)
                
         # for each calibration tag in sensor
         for calib in calib_element:    
             if calib.tag != 'SerialNumber' and calib.tag != 'CalibrationDate' and calib.tag != 'Coefficients' and calib.tag != 'CalibrationCoefficients':
                 buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                 
-                # Remove extra zeros after decimal point since the pdf files don't contain that granularity
-                calib.text = float(calib.text)
-                calib.text = str(calib.text).rstrip('0')    
-                # Remove the trailing dot if it exists
-                if calib.text.endswith('.'):
-                    calib.text = calib.text[:-1]
+                # Convert from scientific to floating point representation
+                ctext = float(calib.text)
+                ctext = f'{ctext:.6f}'.rstrip('0').rstrip('.')
                 
-                if calib.text in sensor_root:
+                if ctext in sensor_root:
+                    buffer.write(f"Value check passed\n")
+                elif calib.text in sensor_root:
                     buffer.write(f"Value check passed\n")
                 else:
+                    # look for scientific notation value                    
                     buffer.write(f"Check FAILED: calibration {calib.tag} = {calib.text} not found in calib file\n")
                     if serial_number not in failed_instruments:
                         failed_instruments.append(serial_number)
@@ -333,6 +346,10 @@ def confirm_calibration(xmlcon_file_path, calib_file_path):
 def compare_all_xmlcon(xmlcon_file_path):
     #'diffcheck' the .XMLCONs in the directory
     files = find_xmlcon_files(xmlcon_file_path)
+    if len(files) == 0:
+        buffer.write(f"ERROR: There are no XMLCON files in: {xmlcon_file_path}\n")
+        error_found = True
+        return False
     
     def compare_xmls(observed,expected):
         formatter = formatting.DiffFormatter()

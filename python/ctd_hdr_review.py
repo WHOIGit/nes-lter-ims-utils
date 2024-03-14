@@ -1,9 +1,8 @@
 # Protocol for reviewing processed CTD header data prior to upload to RDS for NES-LTER REST API
 # Check header files for:
-#     “modulo errors” from cable problems
+#     modulo errors from cable problems
 #     includes sensors that you care about
 #     min, max range checks for sensors 
-
 
 import argparse
 import os

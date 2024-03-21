@@ -2,6 +2,7 @@
 # Open xmlcon file, step through each sensor, comparing cal values to respective values in cal files.
 
 import argparse
+from ast import Try
 import xml.etree.ElementTree as ET
 import urllib.request
 from urllib.parse import urlparse, urlunparse
@@ -51,7 +52,11 @@ def find_calib_file_with_serial_number(url, serial_number):
            # Extracting file names from directory listing
            file_names = [a['href'] for a in soup.find_all('a') if a.has_attr('href')]
     except:
-       file_names = os.listdir(url)
+        try: 
+            file_names = os.listdir(url)
+        except:
+            buffer.write(f"Directory does not exist: {url}\n")
+            return None
 
     index = serial_number.find('s/n')
     if index != -1:
@@ -287,7 +292,13 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                 buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                 
                 # Remove extra zeros after decimal point since the pdf files don't contain that granularity
-                calib.text = float(calib.text)
+                try:
+                    calib.text = float(calib.text)
+                except:
+                    buffer.write(f"Check FAILED: calibration {calib.tag} invalid number: {calib.text} \n")  #AR34b
+                    if serial_number not in failed_instruments:
+                        failed_instruments.append(serial_number)
+                        return
                 calib.text = str(calib.text).rstrip('0')    
                 # Remove the trailing dot if it exists
                 if calib.text.endswith('.'):
@@ -366,7 +377,10 @@ def check_btl_files(xmlcon_file_path):
     # for every .hdr file, check if there's a btl file with the same name
     warning = False
     for hdr_file in glob(os.path.join(xmlcon_file_path, '*.hdr')):
-        if (not os.path.basename(hdr_file).startswith(('d', 'u'))) and ('_u.' not in os.path.basename(hdr_file)):    
+        if (not os.path.basename(hdr_file).startswith(('d', 'u')) and 
+            '_u.' not in os.path.basename(hdr_file) and
+            '_up.' not in os.path.basename(hdr_file) and
+            '_down.' not in os.path.basename(hdr_file)):
             btl_file = hdr_file[:-4] + '.btl'  # Replace the .hdr extension with .btl
             # Check if the .btl file exists
             if not os.path.exists(btl_file):
@@ -379,27 +393,29 @@ def check_btl_files(xmlcon_file_path):
 
 
 def review_data(xmlcon_file_path, calib_file_path):
-    
     match = re.search(r'ship-provided_data_(.*?)\\', xmlcon_file_path)
     if match:
         cruise_name = match.group(1)
     else:
         print(f"Cruise name pattern not found in file path.")
         buffer.write(f"Cruise name pattern not found in file path.<br>")
-
-    if "xmlcon" in xmlcon_file_path:
-        confirm_calibration(xmlcon_file_path, calib_file_path)
-    else:
-        result_file = compare_all_xmlcon(xmlcon_file_path)
-        if result_file:
-            buffer.write(f"All .XMLCON files match!!!!\n")
-            buffer.write(f"\n")
-            check_btl_files(xmlcon_file_path)
-            confirm_calibration(result_file, calib_file_path)
+        
+    if os.path.exists(xmlcon_file_path) and os.path.exists(calib_file_path):
+        if "xmlcon" in xmlcon_file_path:
+            confirm_calibration(xmlcon_file_path, calib_file_path)
         else:
-            buffer.write(f"Reference README to see if there's a legitimate reason.\n")
-            buffer.write(f"\n")
-            check_btl_files(xmlcon_file_path)
+            result_file = compare_all_xmlcon(xmlcon_file_path)
+            if result_file:
+                buffer.write(f"All .XMLCON files match!!!!\n")
+                buffer.write(f"\n")
+                check_btl_files(xmlcon_file_path)
+                confirm_calibration(result_file, calib_file_path)
+            else:
+                buffer.write(f"Reference README to see if there's a legitimate reason.\n")
+                buffer.write(f"\n")
+                check_btl_files(xmlcon_file_path)
+    else:
+        buffer.write(f"ERROR: Required directory does not exist: {xmlcon_file_path}, {calib_file_path}\n")
             
     summary.write(f"Summary Report\n")
     summary.write(f"List of Failed Instrument Serial Numbers: \n")
@@ -422,8 +438,7 @@ def main():
     parser.add_argument('path', type=str, help='Path to ctd xmlcon directory or file')
     parser.add_argument('calib', type=str, help='Path to Calibration file directory')   # typically is ctd/doc dir
     
-    args = parser.parse_args()
-    
+    args = parser.parse_args()       
     review_data(args.path, args.calib)
 
 if __name__ == '__main__':

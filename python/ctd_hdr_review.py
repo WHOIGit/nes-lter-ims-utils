@@ -21,7 +21,10 @@ def find_hdr_files(url):
     for file in glob(os.path.join(url, '*.hdr')):
         # get base filename
         filename = os.path.splitext(os.path.basename(file))[0]
-        if "_u" not in filename and not (filename.startswith("dar") or filename.startswith("uar")): 
+        if ('_u' not in filename and
+            not (filename.startswith("dar") or filename.startswith("uar")) and
+            '_up' not in filename and
+            '_down' not in filename):
             matching_files.append(file)
     return matching_files
 

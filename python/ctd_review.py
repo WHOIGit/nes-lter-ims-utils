@@ -80,7 +80,7 @@ def find_calib_file_with_serial_number(url, serial_number):
             
     if not matching_files:
         for file_name in new_file_names:
-            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name and 'Repair' not in file_name:
+            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name and '_Repair' not in file_name:
                 # there can be more than one file name that matches
                 matching_files.append(file_name)
 
@@ -202,6 +202,36 @@ def check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number )
                         failed_instruments.append(serial_number)
                     
                 coef_index = coef_index + 1
+                
+def check_date(date):
+    error = False
+    try:
+        parsed_date = datetime.strptime(date, "%d-%b-%y")
+    except:
+        try:
+            parsed_date = datetime.strptime(date, "%d-%b-%Y")
+        except:
+            try:
+                parsed_date = datetime.strptime(date, "%m/%d/%Y")
+            except:
+                try:
+                    parsed_date = datetime.strptime(date, "%Y%m%d")
+                except:
+                    try:
+                        parsed_date = datetime.strftime(date, "%B %d, %Y")
+                    except:
+                        error = True
+                        formatted_date_str = ''
+                
+    if not error:
+        # remove leading zero from month and day
+        month = str(int(parsed_date.strftime("%m")))
+        day = str(int(parsed_date.strftime("%d")))  
+        year = parsed_date.strftime("%Y")        
+        # Format the parsed date as "MM/DD/YY"
+        formatted_date_str = f"{month}/{day}/{year}"
+            
+    return formatted_date_str
 
 def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number ):
     # For each element in the sensor element (TemperatureSensor, ConductivitySensor, PressureSensor, etc)
@@ -217,21 +247,30 @@ def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number )
         for calib in calib_element:    
             # Process Coefficients separately below
             if calib.tag != 'SerialNumber' and calib.tag != 'CalibrationDate' and calib.tag != 'Coefficients' and calib.tag != 'CalibrationCoefficients':
-                buffer.write(f"Checking {calib.tag}: {calib.text}\n")
+                #buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                 tag = sensor_root.find('.//' + calib.tag)
                 # check if calibration tag and text in xmlcon file in calibration file for the serial number of sensor
                 if tag is not None:
                     tag_date = sensor_root.find('.//' + 'CalibrationDate')
                     calib_date = calib_element.find('CalibrationDate')
                     if float(tag.text) != float(calib.text):
+                        buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                         buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} do not match values in calib file: {tag.text}\n")
                         if serial_number not in failed_instruments:
                             failed_instruments.append(serial_number)
                     elif tag_date.text != calib_date.text:
-                        buffer.write(f"Check FAILED: calibration date {calib_date.text} does not match values in calib file: {tag_date.text}\n")
-                        if serial_number not in failed_instruments:
-                            failed_instruments.append(serial_number)
+                        buffer.write(f"Checking {calib.tag}: {calib.text}\n")
+                        tag_date_str = check_date(tag_date.text)
+                        calib_date_str = check_date(calib_date.text)
+                        if (tag_date_str != calib_date_str) or (tag_date_str == '') or (calib_date_str == ''):
+                            buffer.write(f"Check FAILED: calibration date {calib_date.text} does not match values in calib file: {tag_date.text}\n")
+                            if serial_number not in failed_instruments:
+                                failed_instruments.append(serial_number)
+                        else:
+                            buffer.write(f"Checking {calib.tag}: {calib.text}\n")
+                            buffer.write(f"Calibration Value and Date Checks passed\n")
                     else:
+                        buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                         buffer.write(f"Calibration Value and Date Checks passed\n")
                 else:
                     buffer.write(f"Check FAILED: calibration {calib.tag} not found in calib file\n")    
@@ -253,38 +292,24 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                
         # check the date
         calib_date = calib_element.find('CalibrationDate')
-        try:
-            parsed_date = datetime.strptime(calib_date.text, "%d-%b-%y")
-        except:
-            try:
-                parsed_date = datetime.strptime(calib_date.text, "%m/%d/%Y")
-            except:
-                try:
-                    parsed_date = datetime.strptime(calib_date.text, "%Y%m%d")
-                except:
-                    buffer.write(f"Date check failed, invalid date string: {calib_date.text}\n")
-                    date_error = True
-                
-        if not date_error:
-            # remove leading zero from month and day
-            month = str(int(parsed_date.strftime("%m")))
-            day = str(int(parsed_date.strftime("%d")))  
-            year = parsed_date.strftime("%Y")        
-            # Format the parsed date as "MM/DD/YY"
-            formatted_date_str = f"{month}/{day}/{year}"
+        formatted_date_str = check_date(calib_date.text)
                     
+        if formatted_date_str != '' and formatted_date_str in sensor_root:
+            buffer.write(f"Date check passed\n")
+        elif formatted_date_str != '':
+            parsed_date = datetime.strptime(formatted_date_str, "%m/%d/%Y")
+            month = parsed_date.strftime("%b")
+            day = str(int(parsed_date.strftime("%d")))  
+            year = parsed_date.strftime("%y")        
+            formatted_date_str = f"{day}-{month}-{year}"
             if formatted_date_str in sensor_root:
                 buffer.write(f"Date check passed\n")
+            elif "Date" not in sensor_root:
+                buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
             else:
-                formatted_date_str = parsed_date.strftime("%B %d, %Y")
-                if formatted_date_str in sensor_root:
-                    buffer.write(f"Date check passed\n")
-                elif "Date" not in sensor_root:
-                    buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
-                else:
-                    buffer.write(f"Date check failed, expecting {formatted_date_str}\n")   # some pdf files contain images which cannot be read
-                    if serial_number not in failed_instruments:
-                        failed_instruments.append(serial_number)
+                buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
+                if serial_number not in failed_instruments:
+                    failed_instruments.append(serial_number)
                
         # for each calibration tag in sensor
         for calib in calib_element:    
@@ -310,13 +335,55 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                     buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} not found in calib file\n")
                     if serial_number not in failed_instruments:
                         failed_instruments.append(serial_number)
+                        
 
+def confirm_calibration_diff(xmlcon_file_path, diff_text, calib_file_path):
+    buffer.write(f"\n---------->The following file is used to check the calibration values:<----------\n")
+    buffer.write(f"Path: {xmlcon_file_path}\n")
+    
+    if 'Nmea' not in diff_text:    #confusing diff text has NMEA - AR61a, AR61b, AR78
+        # read in the xmlcon file in the ctd directory
+        xmlcon_root = get_data(xmlcon_file_path)
+    
+        # Find Sensor elements in xmlcon file
+        sensor_elements = xmlcon_root.findall('.//Sensor')
+
+        pattern = r'/Sensor\[(\d+)\]/'
+        matches = re.findall(pattern, diff_text)
+        unique_matches = set(matches)     #eliminate duplicate matches
+        matches = list(unique_matches)
+        for match in matches:
+            sensor_index = int(match)
+    
+            # get the sensor at the sensor_index
+            sensor_element = sensor_elements[sensor_index - 1]
+            serial_number_element = sensor_element.find('.//SerialNumber')
+            if serial_number_element is not None:
+                serial_number = serial_number_element.text
+                if serial_number is not None:
+                    buffer.write(f"_____________________________________________________________________________________________________\n")
+                
+                    # Look for sensor serial number .xml file in the calibration directory
+                    sensor_file = find_calib_file_with_serial_number(calib_file_path, serial_number)
+                    if sensor_file:
+                        buffer.write(f"Calibration file found: {sensor_file}\n")
+                        buffer.write(f"Sensor SerialNumber: {serial_number}\n")
+                        sensor_root = get_data(sensor_file)
+                        if sensor_root:
+                            if sensor_file.lower().endswith(".xml"):
+                                check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number)
+                            else:
+                                check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number)  
+                    else:
+                        buffer.write(f"No Calibration file found with serial number {serial_number}\n")   
+                else:
+                    buffer.write(f"Serial Number missing for sensor index: {sensor_index-1}\n")   
+    else:
+        buffer.write(f"Nmea change, no sensor changes\n")   
 
 def confirm_calibration(xmlcon_file_path, calib_file_path):
-    buffer.write(f"The following file is used to check the calibration values:\n")
+    buffer.write(f"\n---------->The following file is used to check the calibration values:<----------\n")
     buffer.write(f"Path: {xmlcon_file_path}\n")
-    # get the ctd/doc dir for this cruise
-    #doc_dir = get_doc_dir(xmlcon_file_path)
    
     # read in the xmlcon file in the ctd directory
     xmlcon_root = get_data(xmlcon_file_path)
@@ -344,31 +411,29 @@ def confirm_calibration(xmlcon_file_path, calib_file_path):
                         else:
                             check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number)  
                 else:
-                    buffer.write(f"No Calibration file found with serial number {serial_number}\n")   
+                    buffer.write(f"No Calibration file found with serial number {serial_number}\n")
+ 
                     
 def compare_all_xmlcon(xmlcon_file_path):
+    diff_files = []
     #'diffcheck' the .XMLCONs in the directory
     files = find_xmlcon_files(xmlcon_file_path)
     
     def compare_xmls(observed,expected):
         formatter = formatting.DiffFormatter()
-        diff = xmldiff_main.diff_files(observed,expected,formatter=formatter)       
+        diff = xmldiff_main.diff_files(observed,expected,formatter=formatter)         
         return diff
-
+    
     buffer.write(f"First XMLCON file: {files[0]}\n")
     buffer.write(f"Last XMLCON file: {files[len(files)-1]}\n")
 
-    error_found = False    
     for i in range(len(files)):
         out = compare_xmls(files[0], files[i])
         if out != "":
             buffer.write(f"XMLCON file does not match: {files[i]}\n")
-            error_found = True
+            diff_files.append((files[i], out))
     
-    if error_found:
-        return False
-    else:
-        return files[0]
+    return files[0], diff_files
 
 def check_btl_files(xmlcon_file_path):
     if '\\raw' in xmlcon_file_path:
@@ -404,16 +469,24 @@ def review_data(xmlcon_file_path, calib_file_path):
         if "xmlcon" in xmlcon_file_path:
             confirm_calibration(xmlcon_file_path, calib_file_path)
         else:
-            result_file = compare_all_xmlcon(xmlcon_file_path)
-            if result_file:
+            result_file, diff_files = compare_all_xmlcon(xmlcon_file_path)
+            if not diff_files:
                 buffer.write(f"All .XMLCON files match!!!!\n")
                 buffer.write(f"\n")
-                check_btl_files(xmlcon_file_path)
-                confirm_calibration(result_file, calib_file_path)
             else:
                 buffer.write(f"Reference README to see if there's a legitimate reason.\n")
                 buffer.write(f"\n")
-                check_btl_files(xmlcon_file_path)
+            check_btl_files(xmlcon_file_path)
+            confirm_calibration(result_file, calib_file_path)  #check calibrations in the first xmlcon file
+            if diff_files:
+                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
+                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
+                buffer.write(f"\nChecking XMLCON File Differences.\n")
+                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
+                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
+                buffer.write(f"\n")
+                for file, diff in diff_files:
+                    confirm_calibration_diff(file, diff, calib_file_path)  #check calibrations in the difference in other xmlcon files
     else:
         buffer.write(f"ERROR: Required directory does not exist: {xmlcon_file_path}, {calib_file_path}\n")
             

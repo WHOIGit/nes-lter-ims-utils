@@ -63,7 +63,7 @@ def plot_data(primary_sensor, secondary_sensor, cruise_name, cast, df):
     if '/' in primary_sensor:
         primary_sensor = primary_sensor.replace('/', '')
     # save the plot to the plot files directory
-    plt.savefig(current_dir + "/plot_files/" + cruise_name + "_" + cast + "_" + primary_sensor + '_plot.png')
+    plt.savefig(current_dir + "/plot_files/" + cruise_name + "/" + cruise_name + "_" + cast + "_" + primary_sensor + '_plot.png')
     plt.close()
     
 def plot_diff(primary_sensor, secondary_sensor, cruise_name, cast, df, args):  
@@ -92,7 +92,7 @@ def plot_diff(primary_sensor, secondary_sensor, cruise_name, cast, df, args):
     if '/' in primary_sensor:
         primary_sensor = primary_sensor.replace('/', '')
     # save the plot to the plot_files directory
-    plt.savefig(current_dir + "/plot_files/" + cruise_name + "_" + cast + "_" + primary_sensor + '_diff_plot.png')
+    plt.savefig(current_dir + "/plot_files/" + cruise_name + "/" + cruise_name + "_" + cast + "_" + primary_sensor + '_diff_plot.png')
     plt.close()
     
 def temp_cond_diff(cruise_name, args):
@@ -109,7 +109,10 @@ def temp_cond_diff(cruise_name, args):
         
         base_filename = os.path.basename(file)
         parts = base_filename.split('_')
-        cast = parts[1].split('.')[0]
+        try:
+            cast = parts[1].split('.')[0]
+        except:   #hrs2303 cruise files (d001Header.asc)
+            cast = base_filename[1:4]       
         
         if "T090C" and "C0S/m" in df.columns:
             temp_diff = df["T190C"] - df["T090C"]
@@ -141,7 +144,7 @@ def temp_cond_diff(cruise_name, args):
             plt.gca().invert_yaxis()  # Invert y-axis to show increasing pressure from bottom to top
  
             # save the plot to the plot_files dir
-            plt.savefig(current_dir + "/plot_files/" + cruise_name + "_" + cast + "_" + 'temp_cond_diff_plot.png')
+            plt.savefig(current_dir + "/plot_files/"+ cruise_name + "/" + cruise_name + "_" + cast + "_" + 'temp_cond_diff_plot.png')
             plt.close()
 
     
@@ -161,7 +164,10 @@ def get_asc_data(primary_sensor, secondary_sensor, cruise_name, args):
         if primary_sensor in df.columns:
             base_filename = os.path.basename(file)
             parts = base_filename.split('_')
-            cast = parts[1].split('.')[0]
+            try:
+                cast = parts[1].split('.')[0]
+            except:   #hrs2303 cruise files (d001Header.asc)
+                cast = base_filename[1:4]                
             plot_data(primary_sensor, secondary_sensor, cruise_name, cast, df)
             if secondary_sensor in df.columns:
                 plot_diff(primary_sensor, secondary_sensor, cruise_name, cast, df, args)
@@ -194,7 +200,7 @@ def review_data(args):
         "C0S/m": "C1S/m", 
         "Sbox0Mm/Kg": "Sbox1Mm/Kg"}
     
-    match = re.search(r'(AR|EN)\w*', asc_file_path)
+    match = re.search(r'(AR|EN|HRS)\w*', asc_file_path)
     if match:
         cruise_name = match.group(0)
     else:
@@ -205,7 +211,7 @@ def review_data(args):
     if cruise_name.startswith('AR'):
         primary_sensor_list = ar_primary_sensor_list
         secondary_sensors = ar_secondary_sensors
-    else:  # cruise starts with EN
+    else:  # cruise starts with EN or HRS
         primary_sensor_list = en_primary_sensor_list
         secondary_sensors = en_secondary_sensors
     

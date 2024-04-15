@@ -65,6 +65,10 @@ def find_calib_file_with_serial_number(url, serial_number):
     matching_files = []
     new_file_names = file_names
     
+    primary_ctd_dir = url + "/primary_ctd_cals"
+    if os.path.exists(primary_ctd_dir):
+        file_names.extend([f'primary_ctd_cals/{file_name}' for file_name in os.listdir(primary_ctd_dir)])
+    
     # if file_name is a directory name
     for file_name in file_names:
         new_path = os.path.join(url, file_name)
@@ -310,6 +314,10 @@ def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
                 buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
                 if serial_number not in failed_instruments:
                     failed_instruments.append(serial_number)
+        else:
+            buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
+            if serial_number not in failed_instruments:
+                failed_instruments.append(serial_number)
                
         # for each calibration tag in sensor
         for calib in calib_element:    

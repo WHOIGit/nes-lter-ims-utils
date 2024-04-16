@@ -1,0 +1,71 @@
+---
+title: "map-site-shapefile"
+author: "Kate Morkeski"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+#load required packages 
+
+library(here)
+library(sf)
+library(ggplot2)
+
+#set path to folder
+here("nes-lter-ims-utils/R")
+
+```
+
+Read shapefiles and extract bounding boxes
+
+```{r}
+# Shapefiles downloaded from  https://github.com/NOAA-EDAB/tech-doc/tree/master/gis/
+
+# NOAA NFSC Ecological Production Units 
+epu_sf <- read_sf(here("shapefiles/EPU_extended"))
+
+epu_sf$geometry
+
+```
+
+
+```{r}
+
+# Northeast Shelf Large Marine Ecosystem
+nes_lme_coast <- read_sf("shapefiles/NES_LME_coast")
+
+nes_lme_coast$geometry
+
+```
+
+plot
+
+```{r}
+
+# ggplot(epu_sf) +
+#   geom_sf(fill = "#69b3a2", color = "white") +
+#   theme_void()
+
+ggplot(epu_sf) +
+  geom_sf() +
+  theme_void()
+
+ggsave("plots/EPU_extended.png")
+
+# ggplot(nes_lme_coast) +
+#   geom_sf(fill = "#69b3a2", color = "white") +
+#   theme_void()
+
+ggplot(nes_lme_coast) +
+  geom_sf() +
+  theme_void()
+
+ggsave("plots/NES_LME.png")
+
+# Conclusion: use EPU_extended because it includes the ocean
+
+```
+

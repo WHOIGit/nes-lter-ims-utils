@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Convert .mat underway file to .csv in order to use GPS data
+# Specific to cruise AR80 in this instance
 
 # load required packages
 

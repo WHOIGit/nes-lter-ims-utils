@@ -39,54 +39,45 @@ def get_date_from_filename(file_name):
         else:
             # Return a default value if no date is found
             return datetime.min
+        
+def search_calib_files(file_names, serial_number, primary):
+    matching_files = []
+    for file_name in file_names:
+        if file_name.lower().endswith(".xml") and str(serial_number) in file_name and '_Repair' not in file_name:  #prefer to use xml files
+            if primary:
+                matching_files.append("primary_ctd_cals\\" + file_name)
+            else:
+                matching_files.append(file_name)
+    if len(matching_files) == 0:
+        for file_name in file_names:    
+            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name and '_Repair' not in file_name:
+                if primary:
+                    matching_files.append("primary_ctd_cals\\" + file_name)
+                else:
+                    matching_files.append(file_name)
+    return matching_files
 
 def find_calib_file_with_serial_number(url, serial_number):
-    # url can be https or a local directory path
-    try:
-        response = requests.get(url)
-
-        if response.status_code == 200:
-           html_content = response.text
-           soup = BeautifulSoup(html_content, 'html.parser')
-
-           # Extracting file names from directory listing
-           file_names = [a['href'] for a in soup.find_all('a') if a.has_attr('href')]
-    except:
-        try: 
-            file_names = os.listdir(url)
-        except:
-            buffer.write(f"Directory does not exist: {url}\n")
-            return None
-
     index = serial_number.find('s/n')
     if index != -1:
       serial_number = serial_number[index + 4:].strip()
 
-    matching_files = []
-    new_file_names = file_names
-    
+    # look in the primary_ctd_cals folder first
     primary_ctd_dir = url + "/primary_ctd_cals"
     if os.path.exists(primary_ctd_dir):
-        file_names.extend([f'primary_ctd_cals/{file_name}' for file_name in os.listdir(primary_ctd_dir)])
-    
-    # if file_name is a directory name
-    for file_name in file_names:
-        new_path = os.path.join(url, file_name)
-        if os.path.isdir(new_path) and str(serial_number) in file_name:
-            os.chdir(new_path)
-            url = new_path
-            new_file_names = os.listdir(new_path)       
-
-    for file_name in new_file_names:
-        if file_name.lower().endswith(".xml") and str(serial_number) in file_name:
-            # there can be more than one file name that matches
-            matching_files.append(file_name)
-            
-    if not matching_files:
-        for file_name in new_file_names:
-            if file_name.lower().endswith(".pdf") and str(serial_number) in file_name and '_Repair' not in file_name:
-                # there can be more than one file name that matches
-                matching_files.append(file_name)
+        file_names = os.listdir(primary_ctd_dir)
+        matching_files = search_calib_files(file_names, serial_number, True)
+    else:
+        file_names = os.listdir(url)
+        # if file_name is a directory name
+        for file_name in file_names:
+            new_path = os.path.join(url, file_name)
+            if os.path.isdir(new_path) and str(serial_number) in file_name:
+                os.chdir(new_path)
+                url = new_path
+                file_names = os.listdir(new_path)
+                
+        matching_files = search_calib_files(file_names, serial_number, False)
 
     if not matching_files:
         return None
@@ -147,111 +138,95 @@ def get_doc_dir(xmlcon_file_path):
     url_parts[2] = url_parts_path
     return urlunparse(url_parts)
 
-def check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number ):
-    # Loop through each sensor and process the Coefficients - need to get the tags under the Coefficient tag and verify those tags
+def check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number):
     for element in sensor_element:
         buffer.write(f"{element.tag}: {element.text}\n")
-        coef_index = 0         # coefficient tag equation index
-        
-        calib_elements = xmlcon_root.findall('.//' + element.tag)
-        for element in calib_elements:
-           calib_serial = element.find('SerialNumber')
-           if serial_number == calib_serial.text:
-               calib_element = element
-               print(f"serial number: {serial_number}")
+        process_each_element(xmlcon_root, element, sensor_root, serial_number)
 
-        # for each tag in sensor
-        for calib in calib_element:                        
-            if calib.tag == 'Coefficients' or calib.tag == 'CalibrationCoefficients':
-                buffer.write(f"Checking {calib.tag}: {calib.attrib}\n")
-                tag_occurances = sensor_root.findall('.//' + calib.tag)
-                tag = tag_occurances[coef_index]
-                # check if <Coefficients equation=> matches calibration xml file
-                if tag is not None:
-                    if tag.attrib != calib.attrib:
-                        buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.attrib} do not match values in calib file: {tag.attrib}\n")
-                        if serial_number not in failed_instruments:
-                            failed_instruments.append(serial_number)
-                    else:
-                        buffer.write(f"Calibration Value check passed\n")
-                            
-                    # loop thru coeficient tags in the equation <Coefficients equation="0"> and <Coefficients equation="1">
-                    coef_elements = calib.findall('.//')
-                    for coef in coef_elements: 
-                        buffer.write(f"Checking {coef.tag}: {coef.text}\n")
-                        ctags = sensor_root.findall('.//' + coef.tag)
-                        # some ctags have multiples, but others do not
-                        if len(ctags) > 1:
-                            ctag = ctags[coef_index]  # index refers to equation 0 or 1 occurance
-                        else:
-                            ctag = ctags[0]
-                        print(f"len(ctags) {len(ctags)}")
-                        print(f"ctag {ctag}")
-                        print(f"coef_index {coef_index}")
-                        if ctag is not None:
-                            if float(coef.text) != float(ctag.text):
-                                buffer.write(f"Check FAILED: calibration {coef.tag} and {coef.text} do not match values in calib file: {ctag.text}\n")
-                                if serial_number not in failed_instruments:
-                                    failed_instruments.append(serial_number)
-                            else:
-                                buffer.write(f"Calibration Value check passed\n")
+def process_each_element(xmlcon_root, element, sensor_root, serial_number):
+    calib_elements = find_calibration_elements(xmlcon_root, element.tag)
+    calib_element = find_element_by_serial(calib_elements, serial_number)
+    print(f"serial number: {serial_number}")
+    check_calib_elements(calib_element, sensor_root, serial_number)
 
-                        else:
-                            buffer.write(f"Check FAILED: calibration {coef.tag} not found in calib file\n") 
-                            if serial_number not in failed_instruments:
-                                failed_instruments.append(serial_number)
-                else:
-                    buffer.write(f"Check FAILED: calibration {calib.tag} not found in calib file\n")   
-                    if serial_number not in failed_instruments:
-                        failed_instruments.append(serial_number)
-                    
-                coef_index = coef_index + 1
+def check_calib_elements(calib_element, sensor_root, serial_number):
+    coef_index = 0  # coefficient tag equation index
+    for calib in calib_element:
+        if calib.tag == 'Coefficients' or calib.tag == 'CalibrationCoefficients':
+            buffer.write(f"Checking {calib.tag}: {calib.attrib}\n")
+            check_calibration_tags(calib, sensor_root, coef_index, serial_number)
+            coef_index += 1
+
+def check_calibration_tags(calib, sensor_root, coef_index, serial_number):
+    tag_occurrences = sensor_root.findall('.//' + calib.tag)
+    if tag_occurrences:
+        tag = tag_occurrences[coef_index] if len(tag_occurrences) > coef_index else None
+        compare_tags(calib, tag, serial_number)
+        check_coefficient_details(calib, sensor_root, coef_index, serial_number)
+
+def compare_tags(calib, tag, serial_number):
+    if calib.attrib == tag.attrib:
+        buffer.write(f"Calibration Value check passed\n")
+    else:
+        buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.attrib} do not match values in calib file: {tag.attrib}\n")
+        record_failure(serial_number)
+
+def check_coefficient_details(calib, sensor_root, coef_index, serial_number):
+    coef_elements = calib.findall('.//')
+    for coef in coef_elements:
+        buffer.write(f"Checking {coef.tag}: {coef.text}\n")
+        ctags = sensor_root.findall('.//' + coef.tag)
+        process_coefficient_matches(ctags, coef, coef_index, serial_number)
+
+def process_coefficient_matches(ctags, coef, coef_index, serial_number):
+    ctag = ctags[coef_index] if len(ctags) > 1 else ctags[0] if ctags else None
+    print(f"len(ctags) {len(ctags)}")
+    print(f"ctag {ctag}")
+    print(f"coef_index {coef_index}")
+    if float(coef.text) == float(ctag.text):
+        buffer.write(f"Calibration Value check passed\n")
+    else:
+        buffer.write(f"Check FAILED: calibration {coef.tag} and {coef.text} do not match values in calib file: {ctag.text}\n")
+        record_failure(serial_number)
+
+def record_failure(serial_number):
+    if serial_number not in failed_instruments:
+        failed_instruments.append(serial_number)
                 
 def check_date(date):
-    error = False
-    try:
-        parsed_date = datetime.strptime(date, "%d-%b-%y")
-    except:
+    date_formats = [
+        "%d-%b-%y",
+        "%d-%b-%Y",
+        "%m/%d/%Y",
+        "%Y%m%d",
+        "%B %d, %Y",
+        "%Y-%b-%d"
+    ]
+    for date_format in date_formats:
         try:
-            parsed_date = datetime.strptime(date, "%d-%b-%Y")
+            parsed_date = datetime.strptime(date, date_format)
+            # Successfully parsed, format and return the date
+            month = str(int(parsed_date.strftime("%m")))  # Remove leading zero
+            day = str(int(parsed_date.strftime("%d")))    # Remove leading zero
+            year = parsed_date.strftime("%Y")            # Keep four-digit year
+            return f"{month}/{day}/{year}"               # Return formatted date
         except:
-            try:
-                parsed_date = datetime.strptime(date, "%m/%d/%Y")
-            except:
-                try:
-                    parsed_date = datetime.strptime(date, "%Y%m%d")
-                except:
-                    try:
-                        parsed_date = datetime.strftime(date, "%B %d, %Y")
-                    except:
-                        error = True
-                        formatted_date_str = ''
-                
-    if not error:
-        # remove leading zero from month and day
-        month = str(int(parsed_date.strftime("%m")))
-        day = str(int(parsed_date.strftime("%d")))  
-        year = parsed_date.strftime("%Y")        
-        # Format the parsed date as "MM/DD/YY"
-        formatted_date_str = f"{month}/{day}/{year}"
-            
-    return formatted_date_str
+            continue  # Try the next format if the current one fails
+
+    # If all formats fail, return an empty string
+    return ''
 
 def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number ):
     # For each element in the sensor element (TemperatureSensor, ConductivitySensor, PressureSensor, etc)
     for element in sensor_element:
         buffer.write(f"{element.tag}: {element.text}\n")
-        calib_elements = xmlcon_root.findall('.//' + element.tag)
-        for element in calib_elements:
-           calib_serial = element.find('SerialNumber')
-           if serial_number == calib_serial.text:
-               calib_element = element
+        calib_elements = find_calibration_elements(xmlcon_root, element.tag)
+        calib_element = find_element_by_serial(calib_elements, serial_number)
 
         # for each calibration tag in sensor
         for calib in calib_element:    
             # Process Coefficients separately below
-            if calib.tag != 'SerialNumber' and calib.tag != 'CalibrationDate' and calib.tag != 'Coefficients' and calib.tag != 'CalibrationCoefficients':
-                #buffer.write(f"Checking {calib.tag}: {calib.text}\n")
+            if calib.tag not in ['SerialNumber', 'CalibrationDate', 'Coefficients', 'CalibrationCoefficients']:
                 tag = sensor_root.find('.//' + calib.tag)
                 # check if calibration tag and text in xmlcon file in calibration file for the serial number of sensor
                 if tag is not None:
@@ -260,16 +235,14 @@ def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number )
                     if float(tag.text) != float(calib.text):
                         buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                         buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} do not match values in calib file: {tag.text}\n")
-                        if serial_number not in failed_instruments:
-                            failed_instruments.append(serial_number)
+                        record_failure(serial_number)
                     elif tag_date.text != calib_date.text:
                         buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                         tag_date_str = check_date(tag_date.text)
                         calib_date_str = check_date(calib_date.text)
                         if (tag_date_str != calib_date_str) or (tag_date_str == '') or (calib_date_str == ''):
                             buffer.write(f"Check FAILED: calibration date {calib_date.text} does not match values in calib file: {tag_date.text}\n")
-                            if serial_number not in failed_instruments:
-                                failed_instruments.append(serial_number)
+                            record_failure(serial_number)
                         else:
                             buffer.write(f"Checking {calib.tag}: {calib.text}\n")
                             buffer.write(f"Calibration Value and Date Checks passed\n")
@@ -278,72 +251,104 @@ def check_calibrations(xmlcon_root, sensor_element, sensor_root, serial_number )
                         buffer.write(f"Calibration Value and Date Checks passed\n")
                 else:
                     buffer.write(f"Check FAILED: calibration {calib.tag} not found in calib file\n")    
-                    if serial_number not in failed_instruments:
-                        failed_instruments.append(serial_number)
+                    record_failure(serial_number)
                     
     # Check Coefficients
-    check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number)
-    
-def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number ):
-    for element in sensor_element:
-        date_error = False
-        buffer.write(f"{element.tag}: {element.text}\n")
-        calib_elements = xmlcon_root.findall('.//' + element.tag)
-        for element in calib_elements:
-           calib_serial = element.find('SerialNumber')
-           if serial_number == calib_serial.text:
-               calib_element = element
-               
-        # check the date
-        calib_date = calib_element.find('CalibrationDate')
-        formatted_date_str = check_date(calib_date.text)
-                    
-        if formatted_date_str != '' and formatted_date_str in sensor_root:
+    check_coefficients(xmlcon_root, sensor_element, sensor_root, serial_number) 
+
+def find_calibration_elements(xmlcon_root, tag):
+    """Find calibration elements matching a specific tag."""
+    return xmlcon_root.findall('.//' + tag)
+
+def find_element_by_serial(elements, serial_number):
+    """Find an element by serial number."""
+    for element in elements:
+        serial = element.find('SerialNumber')
+        if serial.text == serial_number:
+            return element
+    return None
+
+def format_date(calib_date_text):
+    """Format the date from YYYY/MM/DD to different string representations."""
+    try:
+        parsed_date = datetime.strptime(calib_date_text, "%m/%d/%Y")
+        short_month = parsed_date.strftime("%b")
+        full_month = parsed_date.strftime("%B")
+        num_month = parsed_date.strftime("%m")
+        day = str(int(parsed_date.strftime("%d")))
+        year = parsed_date.strftime("%Y")
+        short_year = parsed_date.strftime("%y")
+        return {
+            "mdy_dash": f"{day}-{short_month}-{short_year}",
+            "mdy_comma": f"{full_month} {day}, {year}",
+            "mdy_slash" : f"{num_month}/{day}/{year}",
+            "mdy_slash2" : f"{num_month}/{day}/{short_year}"
+        }
+    except:
+        return ""
+
+def check_date_in_sensor_root(date_formats, sensor_root, serial_number):
+    """Check if any formatted date exists in the sensor root."""
+    for date_str in date_formats.values():
+        if date_str in sensor_root:
             buffer.write(f"Date check passed\n")
-        elif formatted_date_str != '':
-            parsed_date = datetime.strptime(formatted_date_str, "%m/%d/%Y")
-            month = parsed_date.strftime("%b")
-            day = str(int(parsed_date.strftime("%d")))  
-            year = parsed_date.strftime("%y")        
-            formatted_date_str = f"{day}-{month}-{year}"
-            if formatted_date_str in sensor_root:
-                buffer.write(f"Date check passed\n")
-            elif "Date" not in sensor_root:
-                buffer.write(f"Date not found - some pdf files contain images which cannot be read\n")
-            else:
-                buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
-                if serial_number not in failed_instruments:
-                    failed_instruments.append(serial_number)
-        else:
-            buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
-            if serial_number not in failed_instruments:
-                failed_instruments.append(serial_number)
-               
-        # for each calibration tag in sensor
-        for calib in calib_element:    
-            if calib.tag != 'SerialNumber' and calib.tag != 'CalibrationDate' and calib.tag != 'Coefficients' and calib.tag != 'CalibrationCoefficients':
-                buffer.write(f"Checking {calib.tag}: {calib.text}\n")
-                
-                # Remove extra zeros after decimal point since the pdf files don't contain that granularity
-                try:
-                    calib.text = float(calib.text)
-                except:
-                    buffer.write(f"Check FAILED: calibration {calib.tag} invalid number: {calib.text} \n")  #AR34b
-                    if serial_number not in failed_instruments:
-                        failed_instruments.append(serial_number)
-                        return
-                calib.text = str(calib.text).rstrip('0')    
-                # Remove the trailing dot if it exists
-                if calib.text.endswith('.'):
-                    calib.text = calib.text[:-1]
-                
-                if calib.text in sensor_root:
+            return True
+    buffer.write(f"Date check failed, expecting one of {date_formats.values()}\n")
+    record_failure(serial_number)
+    return False
+
+def check_calibration_values(calib_element, sensor_root, buffer, serial_number):
+    """Check other calibration values excluding serial number and date."""
+    for calib in calib_element:
+        if calib.tag not in ['SerialNumber', 'CalibrationDate']:
+            buffer.write(f"Checking {calib.tag}: {calib.text}\n")
+            calib_value = format_calibration_value(calib.text)
+            if calib_value != ValueError:
+                if calib_value in sensor_root:
                     buffer.write(f"Value check passed\n")
                 else:
-                    buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} not found in calib file\n")
-                    if serial_number not in failed_instruments:
-                        failed_instruments.append(serial_number)
-                        
+                    buffer.write(f"Check FAILED: calibration {calib.tag} and {calib_value} not found in calib file\n")
+                    record_failure(serial_number)
+            else:
+                buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} not found in calib file\n")
+                record_failure(serial_number)
+                    
+                for coef_calib in calib:     #check coefficients 
+                    buffer.write(f"Checking {coef_calib.tag}: {coef_calib.text}\n")
+                    if coef_calib.text in sensor_root:
+                        buffer.write(f"Value check passed\n")
+                    else:
+                        buffer.write(f"Check FAILED: calibration {coef_calib.tag} and {coef_calib.text} not found in calib file\n")
+                        record_failure(serial_number)
+
+def format_calibration_value(value):
+    """Format calibration value by removing trailing zeros."""
+    try:
+        value = float(value)
+        value = str(value).rstrip('0')
+        if value.endswith('.'):
+            value = value[:-1]
+    except ValueError:
+        return ValueError
+    return value
+
+def check_pdf(xmlcon_root, sensor_element, sensor_root, serial_number):
+    """Main function to check PDF against calibration records."""
+    for element in sensor_element:
+        buffer.write(f"{element.tag}: {element.text}\n")
+        calib_elements = find_calibration_elements(xmlcon_root, element.tag)
+        calib_element = find_element_by_serial(calib_elements, serial_number)
+        if calib_element:
+            calib_date = calib_element.find('CalibrationDate')
+            if calib_date.text:
+                formatted_date_str = check_date(calib_date.text)
+                date_formats = format_date(formatted_date_str)
+                if date_formats != "":
+                    check_date_in_sensor_root(date_formats, sensor_root, serial_number)
+                else:
+                    buffer.write(f"Date check failed, expecting {calib_date.text}\n")   # some pdf files contain images which cannot be read
+                    record_failure(serial_number)
+            check_calibration_values(calib_element, sensor_root, buffer, serial_number)
 
 def confirm_calibration_diff(xmlcon_file_path, diff_text, calib_file_path):
     buffer.write(f"\n---------->The following file is used to check the calibration values:<----------\n")
@@ -354,7 +359,7 @@ def confirm_calibration_diff(xmlcon_file_path, diff_text, calib_file_path):
         xmlcon_root = get_data(xmlcon_file_path)
     
         # Find Sensor elements in xmlcon file
-        sensor_elements = xmlcon_root.findall('.//Sensor')
+        sensor_elements = find_calibration_elements(xmlcon_root, 'Sensor')
 
         pattern = r'/Sensor\[(\d+)\]/'
         matches = re.findall(pattern, diff_text)
@@ -397,7 +402,7 @@ def confirm_calibration(xmlcon_file_path, calib_file_path):
     xmlcon_root = get_data(xmlcon_file_path)
    
     # Find all Sensor elements in xmlcon file
-    sensor_elements = xmlcon_root.findall('.//Sensor')
+    sensor_elements = find_calibration_elements(xmlcon_root, 'Sensor')
 
     # Iterate through each Sensor element and extract the SerialNumber
     for sensor_element in sensor_elements:

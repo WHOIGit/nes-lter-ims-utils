@@ -57,6 +57,7 @@ N_quality_flag	Nitrogen sample IODE Quality Flag primary level with lab flag for
 Niskin_samples	Indication of whether Niskin samples were collected	categorical					nes-lter-events-mvco
 Ocularunits	Units on eyepiece micrometer	numeric	dimensionless			not available for unmeasured prey	nes-lter-fish-diet
 PI_recipient	PI or lab that will be responsible for storing or processing the sample. 	categorical	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
+POC_microg_perL	Particulate organic carbon in micrograms per liter http://vocab.nerc.ac.uk/collection/P01/current/CORGCAP1/	numeric	microgramsPerLiter				nes-lter-npp-transect
 POC_microg_perL	Particulate organic carbon in micrograms per liter http://vocab.nerc.ac.uk/collection/P01/current/CORGPGFF/	numeric	microgramsPerLiter			Missing value	nes-lter-poc-mvco,nes-lter-poc-transect
 POC_micromolar	Particulate organic carbon in micromoles per liter http://vocab.nerc.ac.uk/collection/P01/current/CORGPGFF/	numeric	micromolePerLiter			Missing value	nes-lter-poc-mvco,nes-lter-poc-transect
 PON_microg_perL	Particulate organic nitrogen in micrograms per liter http://vocab.nerc.ac.uk/collection/P01/current/NTOTPGFF/	numeric	microgramsPerLiter			Missing value	nes-lter-poc-mvco,nes-lter-poc-transect
@@ -90,7 +91,7 @@ comments_logsheets	comments from the paper fieldsheets	character	dimensionless		
 comments_reMissingSample	comments on why a sample is missing	character	dimensionless			Not Applicable	nes-lter-zooplankton-transect-inventory
 concentrationFlag	flag 0 concentration may be invalid or 1 concentration likely valid for this taxon when IFCB triggering only on chlorophyll fluorescence	numeric	dimensionless			Missing value	nes-lter-ifcb-transect-winter-2018
 cruise	identifier for research cruise generally including abbreviation for research vessel and voyage number	character					nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
-cruise	Identifier for research cruise generally including abbreviation for research vessel and voyage number	character	dimensionless		 	Missing value	minimal-edi-package,nes-lter-chl-transect,nes-lter-chl-transect-underway-discrete,nes-lter-doc-transect,nes-lter-eims-toi-ncp-gop,nes-lter-growth-grazing-chl,nes-lter-npp-transect,nes-lter-nutrient-transect,nes-lter-poc-transect,nes-lter-trawl-transect-abundance,nes-lter-zooplankton-transect-abundance,nes-lter-zooplankton-transect-inventory
+cruise	Identifier for research cruise generally including abbreviation for research vessel and voyage number	character	 		 	Missing value	minimal-edi-package,nes-lter-chl-transect,nes-lter-chl-transect-underway-discrete,nes-lter-doc-transect,nes-lter-eims-toi-ncp-gop,nes-lter-growth-grazing-chl,nes-lter-npp-transect,nes-lter-nutrient-transect,nes-lter-poc-transect,nes-lter-trawl-transect-abundance,nes-lter-zooplankton-transect-abundance,nes-lter-zooplankton-transect-inventory
 cruise	Identifer for research cruise generally including abbreviation for research vessel and voyage number	character					nes-lter-nutrient-mvco
 cruise	Cruise that sample was collected during	character					nes-lter-fish-diet,nes-lter-fish-diet-isotope
 cruise	Cruise identifer for the R/V Tioga	character					nes-lter-chl-mvco
@@ -158,9 +159,9 @@ event_number_niskin	Identification number for each bucket collection (suffix _00
 family	Family name of taxon http://rs.tdwg.org/dwc/terms/family	character					nes-lter-trawl-transect-abundance
 filename	name of the original .fcs file which the sample corresponds to	character				Missing value	nes-lter-attune-transect-continuous
 filename	Name of individual sample data file from analytical instrument	character					nes-lter-doc-transect
+filter_size	Size fraction with filter and prefilter pore size in micrometers 	categorical					nes-lter-npp-transect
 filter_size	Size fraction with filter and when applicable prefilter in micrometers	categorical					nes-lter-chl-mvco,nes-lter-chl-transect-underway-discrete
 filter_size	Size fraction with filter and when applicable prefilter in micrometers 	categorical					nes-lter-chl-transect
-filter_size	Size fraction with filter and when applicable prefilter pore size in micrometers	categorical					nes-lter-npp-transect
 fixative	method of preservation used on the sample	categorical	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 fluorescence_post_cal	Post-calibrated chlorophyll a concentration for the preferred fluorometer	numeric	microgramsPerLiter			Missing value	nes-lter-chl-transect-underway-discrete
 fluorometer	Comment or fluorometer identifer	character					nes-lter-chl-mvco
@@ -176,8 +177,8 @@ hetprok_volume_analyzed_ml	volume of seawater analyzed in milliliters during the
 higherClassification_group	Higher level phytoplankton group that contains the taxon, from Darwin Core term http://rs.tdwg.org/dwc/terms/higherClassification	categorical			NotApplicable	Several categories are not organisms thus taxonomic names are NotApplicable	nes-lter-ifcb-transect-winter-2018
 incub_type	Identifier for incubation type (either ambient or experiemental)	categorical					nes-lter-npp-transect
 incubation_tank	Incubation tank number (X) where the experiment was performed. This number refers to the CRUISE_temp_inc_X.csv file in chl-grazing-experiment-temo-inc-data folder	categorical					nes-lter-growth-grazing-chl
-integrated_npp_mg_m2_day	Vertically-integrated net primary productivity measured as uptake rate of carbon per unit area of water per day	numeric	milligramPerMeterSquaredPerDay				nes-lter-npp-transect
-iode_quality_flag	IODE Quality Flag primary level	categorical				Missing value	nes-lter-chl-mvco,nes-lter-chl-transect,nes-lter-chl-transect-underway-discrete,nes-lter-eims-toi-ncp-gop,nes-lter-growth-grazing-chl,nes-lter-npp-transect
+integrated_npp_mg_m2_day	Vertically-integrated net primary productivity measured as uptake rate of carbon per unit area of the water body [particulate >0.7um phase] per day	numeric	milligramPerMeterSquaredPerDay			Missing value	nes-lter-npp-transect
+iode_quality_flag	IODE Quality Flag primary level	categorical				Value not expected	nes-lter-chl-mvco,nes-lter-chl-transect,nes-lter-chl-transect-underway-discrete,nes-lter-eims-toi-ncp-gop,nes-lter-growth-grazing-chl,nes-lter-npp-transect
 iode_quality_flag_c	IODE Quality Flag primary level for DOC	categorical					nes-lter-doc-transect
 iode_quality_flag_n	IODE Quality Flag primary level for DTN	categorical					nes-lter-doc-transect
 iode_quality_flag_phosphate	IODE Quality Flag primary level	categorical					nes-lter-nutrient-mvco
@@ -190,22 +191,22 @@ latitude	ships latitude in decimal degrees	numeric	degree			Missing value	nes-lt
 latitude	geographic latitude in decimal degrees http://rs.tdwg.org/dwc/terms/decimalLatitude	numeric	degree			Missing value	nes-lter-picoeuk-mvco
 latitude	Ships latitude when the rosette bottle closed	numeric	degree		"""NA"""	Missing value	nes-lter-chl-transect
 latitude	Ships latitude	numeric	degree			Missing value	nes-lter-chl-transect-underway-discrete
-latitude	Mean of ship's latitude when rosette bottles closed	numeric	degree			Missing value	nes-lter-growth-grazing-chl,nes-lter-npp-transect
 latitude	Ship's latitude when cast started or latitude of MVCO	numeric	degree			Missing value	nes-lter-chl-mvco,nes-lter-nutrient-mvco,nes-lter-poc-mvco
+latitude	Mean of ship's latitude when rosette bottles closed	numeric	degree			Missing value	nes-lter-growth-grazing-chl,nes-lter-npp-transect
 latitude	Latitude of sample event provided by PI	numeric	degree				nes-lter-eims-toi-ncp-gop
 latitude	Ship's latitude when rosette bottle closed	numeric	degree			Missing value	minimal-edi-package,nes-lter-doc-transect,nes-lter-npp-transect,nes-lter-nutrient-transect,nes-lter-poc-transect
 latitude_API	Latitude of sample event provided by NES-LTER API	numeric	degree				nes-lter-eims-toi-ncp-gop
 latitude_input	Latitude of sample event provided by PI	numeric	degree				nes-lter-eims-toi-ncp-gop
 lifeStage	Taxon life stage http://rs.tdwg.org/dwc/iri/lifeStage using BODC vocabulary http://vocab.nerc.ac.uk/collection/S11/current/	character					nes-lter-trawl-transect-abundance
 light_level	Target percentage of ambient light during the incubation	categorical					nes-lter-growth-grazing-chl
-longitude	ships longitude in decimal degrees	numeric	degree			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
-longitude	geographic longitude in decimal degrees http://rs.tdwg.org/dwc/terms/decimalLongitude	numeric	degree			Missing value	nes-lter-picoeuk-mvco
-longitude	Ships longitude when the rosette bottle closed	numeric	degree		"""NA"""	Missing value	nes-lter-chl-transect
-longitude	Ships longitude	numeric	degree			Missing value	nes-lter-chl-transect-underway-discrete
 longitude	Mean of ship's longitude when rosette bottles closed	numeric	degree			Missing value	nes-lter-growth-grazing-chl,nes-lter-npp-transect
-longitude	Ship's longitude when cast started or longitude of MVCO	numeric	degree			Missing value	nes-lter-chl-mvco,nes-lter-nutrient-mvco,nes-lter-poc-mvco
 longitude	Longitude of sample event provided by PI	numeric	degree				nes-lter-eims-toi-ncp-gop
+longitude	Ship's longitude when cast started or longitude of MVCO	numeric	degree			Missing value	nes-lter-chl-mvco,nes-lter-nutrient-mvco,nes-lter-poc-mvco
 longitude	Ship's longitude when rosette bottle closed	numeric	degree			Missing value	minimal-edi-package,nes-lter-doc-transect,nes-lter-npp-transect,nes-lter-nutrient-transect,nes-lter-poc-transect
+longitude	Ships longitude	numeric	degree			Missing value	nes-lter-chl-transect-underway-discrete
+longitude	Ships longitude when the rosette bottle closed	numeric	degree		"""NA"""	Missing value	nes-lter-chl-transect
+longitude	geographic longitude in decimal degrees http://rs.tdwg.org/dwc/terms/decimalLongitude	numeric	degree			Missing value	nes-lter-picoeuk-mvco
+longitude	ships longitude in decimal degrees	numeric	degree			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 longitude_API	Longitude of sample event provided by NES-LTER API	numeric	degree				nes-lter-eims-toi-ncp-gop
 longitude_input	Longitude of sample event provided by PI	numeric	degree				nes-lter-eims-toi-ncp-gop
 maxFeretDiameter	Representation of length of the ROI, approximating the largest mesh size for which the organism could be retained, determined by means specified in the image processing method	numeric	micrometer			Missing value	nes-lter-ifcb-transect-winter-2018
@@ -219,17 +220,17 @@ mu_N	Phytoplankton growth rate in nutrient-amended treatments (µN = g + kN, wit
 mu_N_std	Uncertainty relative to µN estinated from the standard deviation observed on the apparent phytoplankton growth rate kN in nutrient-amended treatment (see associated computation methods)	numeric	perDay			Not nutrient-limited, thus no value.	nes-lter-growth-grazing-chl
 ncp	Rate of net community production integrated over the mixed layer as oxygen flux	numeric	millimolePerMeterSquaredPerDay			Missing value	nes-lter-eims-toi-ncp-gop
 ncp_per_gop	Net community production divided by gross oxygen production	numeric	dimensionless			Missing value	nes-lter-eims-toi-ncp-gop
+nearest_station	Nearest station is provided per cruise	character	 		 	 	nes-lter-nutrient-transect
 nearest_station	NES-LTER standard station nearest to the sample location	character			"""NA"""	Distance greater than 2 km from NES-LTER standard station	nes-lter-chl-transect,nes-lter-doc-transect
 nearest_station	NES-LTER station nearest to the sample location	character				Missing value	nes-lter-attune-fcm-discrete-transect
-nearest_station	Nearest station is provided per cruise	character	 		 	 	nes-lter-nutrient-transect
 net_fraction	if not whole net, the portion of the net that comprises the sample	numeric	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 net_type	type of net deployed	categorical	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 niskin	Rosette bottle position number	numeric	dimensionless			Missing value	minimal-edi-package,nes-lter-attune-fcm-discrete-transect,nes-lter-chl-transect,nes-lter-doc-transect,nes-lter-npp-transect,nes-lter-nutrient-transect,nes-lter-poc-transect
 niskin	"Rosette bottle position number. When multiple bottles were used to collect seawater, they are separated by ""-"". When Niskins from multiple casts were combined, casts are separated by ""|"""	character					nes-lter-growth-grazing-chl
 nitrate_nitrite	Nitrate+nitrite concentration in the water column http://vocab.nerc.ac.uk/collection/P02/current/NTRA/	numeric	micromolePerLiter			Missing value	minimal-edi-package,nes-lter-nutrient-transect
 nitrate_nitrite	Nitrate+nitrite concentration in the water column. URI http://vocab.nerc.ac.uk/collection/P02/current/NTRA/	numeric	micromolePerLiter			Missing value	nes-lter-nutrient-mvco
-no_of_jars	if the sample is large and was split between multiple jars, record the number of jars or vials (jars used an synonym for whatever container type the sample is preserved in)	numeric	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 no_of_jars	The number of sample vessels preserved from the catch	numeric	number				nes-lter-trawl-transect-abundance
+no_of_jars	if the sample is large and was split between multiple jars, record the number of jars or vials (jars used an synonym for whatever container type the sample is preserved in)	numeric	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 npp_rate	Net primary productivity in micrograms carbon per liter per day determined by uptake rate of labeled bicarbonate	numeric	microgramPerLiterPerDay			Missing value	nes-lter-npp-transect
 occurrenceID	Darwin Core unique identifier for the ROI as an Occurrence (http://rs.tdwg.org/dwc/terms/occurrenceID)	character				Missing value	nes-lter-ifcb-transect-winter-2018
 occurrenceStatus	Darwin Core presence or absence of a Taxon at a Location (http://rs.tdwg.org/dwc/terms/occurrenceStatus)	character				Missing value	nes-lter-ifcb-transect-winter-2018
@@ -249,9 +250,9 @@ preyTaxa	Specific taxonomic category of prey	character				higher taxonomic resol
 preyTaxon	Llopiz lab category of prey item	character			-9999.0	Empty fish gut	nes-lter-fish-diet-isotope
 preyTaxon	Most general taxonomic category of prey	character					nes-lter-fish-diet
 prey_mm	Length of prey	numeric	millimeter			no lengths given for counts	nes-lter-fish-diet
+project_id	Identifier for project that funded the cruise (or sample when available)	categorical	 		 	 	nes-lter-chl-transect,nes-lter-nutrient-transect
 project_id	Project associated to the cruise	categorical				Missing value	nes-lter-events-transect
 project_id	Project associated with the sample collected	categorical				Missing value	minimal-edi-package
-project_id	Identifier for project that funded the cruise (or sample when available)	categorical	 		 	 	nes-lter-chl-transect,nes-lter-nutrient-transect
 purpose	intention for collecting sample	categorical	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 redeuk_filename	name of original .fcs file used to identify red eukaryotes in this sample	character				Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 redeuk_leq_10um_biovolume_concentration	cubic micrometers per milliliter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 10 um in diameter including cells counted in previous columns	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
@@ -260,31 +261,31 @@ redeuk_leq_10um_cells_per_ml	abundance per milliliter of eukaryote (urn:lsid:alg
 redeuk_leq_10um_cells_per_ml	abundance per unit volume of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 10 um in diameter including cells counted in previous columns	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 redeuk_leq_20um_biovolume_concentration	cubic micrometers per milliliter of seawater of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells less than 20 um in diameter including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ and http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 redeuk_leq_20um_biovolume_concentration	cubic micrometers per milliliter of seawater of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-transect-continuous
-redeuk_leq_20um_carbon_concentration	micrograms of carbon per liter of seawater of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	microgramsPerLiter			Missing value	nes-lter-attune-transect-continuous
 redeuk_leq_20um_carbon_concentration	micrograms of carbon per liter of seawater of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells less than 20 um in diameter including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ and http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	microgramsPerLiter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
+redeuk_leq_20um_carbon_concentration	micrograms of carbon per liter of seawater of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	microgramsPerLiter			Missing value	nes-lter-attune-transect-continuous
+redeuk_leq_20um_cells_per_ml	abundance per unit volume of eukaryote picophytoplankton including those that exceed the typical picoplankton size http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	numberPerMilliliter			Missing value	nes-lter-picoeuk-mvco
 redeuk_leq_20um_cells_per_ml	abundance per milliliter of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells less than 20 um in diameter including cells counted in previous columns http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ and http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	numberPerMilliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 redeuk_leq_20um_cells_per_ml	abundance per unit volume of all measured eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton including cells counted in previous columns http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
-redeuk_leq_20um_cells_per_ml	abundance per unit volume of eukaryote picophytoplankton including those that exceed the typical picoplankton size http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ http://vocab.nerc.ac.uk/collection/F02/current/F0200004/ http://vocab.nerc.ac.uk/collection/F02/current/F0200005/	numeric	numberPerMilliliter			Missing value	nes-lter-picoeuk-mvco
 redeuk_leq_2um_biovolume_concentration	cubic micrometers per milliliter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) picophytoplankton cells estimated from scattering signal to be less than 2 um in diameter	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 redeuk_leq_2um_carbon_concentration	micrograms of carbon per liter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) picophytoplankton cells estimated from scattering signal to be less than 2 um in diameter	numeric	microgramsPerLiter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 redeuk_leq_2um_cells_per_ml	abundance per milliliter of eukaryote (urn:lsid:algaebase.org:taxname:86701) picophytoplankton cells estimated from scattering signal to be less than 2 um in diameter	numeric	numberPerMilliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 redeuk_leq_2um_cells_per_ml	abundance per unit volume of eukaryote (urn:lsid:algaebase.org:taxname:86701) picophytoplankton cells estimated from scattering signal to be less than 2 um in diameter	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 redeuk_leq_3um_biovolume_concentration	cubic micrometers per milliliter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 3 um in diameter including cells counted in previous column	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 redeuk_leq_3um_carbon_concentration	micrograms of carbon per liter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 3 um in diameter including cells counted in previous column	numeric	microgramsPerLiter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
-redeuk_leq_3um_cells_per_ml	abundance per unit volume of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 3 um in diameter including cells counted in previous column	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 redeuk_leq_3um_cells_per_ml	abundance per milliliter of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 3 um in diameter including cells counted in previous column	numeric	numberPerMilliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
+redeuk_leq_3um_cells_per_ml	abundance per unit volume of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 3 um in diameter including cells counted in previous column	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 redeuk_leq_5um_biovolume_concentration	cubic micrometers per milliliter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 5 um in diameter including cells counted in previous columns	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 redeuk_leq_5um_carbon_concentration	micrograms of carbon per liter of seawater of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 5 um in diameter including cells counted in previous columns	numeric	microgramsPerLiter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 redeuk_leq_5um_cells_per_ml	abundance per milliliter of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 5 um in diameter including cells counted in previous columns	numeric	numberPerMilliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 redeuk_leq_5um_cells_per_ml	abundance per unit volume of eukaryote (urn:lsid:algaebase.org:taxname:86701) phytoplankton cells estimated from scattering signal to be less than 5 um in diameter including cells counted in previous columns	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 redeuk_volume_analyzed_ml	volume of seawater analyzed in milliliters during the flow cytometry run associated with redeuk_filename	numeric	milliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 region	Regions as categorized in Suca et al. 2018	categorical					nes-lter-fish-diet-isotope
-replicate	Lowercase letter indicating replicate subsample drawn from the same rosette bottle	character	 		 	Missing value	minimal-edi-package,nes-lter-chl-transect,nes-lter-doc-transect,nes-lter-nutrient-transect,nes-lter-poc-mvco,nes-lter-poc-transect
-replicate	Lowercase letter indicating replicate subsample drawn from the same rosette bottle or bucket	character			 	 	nes-lter-chl-mvco,nes-lter-nutrient-mvco
 replicate	Integer indicating replicate subsample drawn from the same Niskin	character				Missing value	nes-lter-npp-transect
 replicate	Lowercase letter indicating replicate subsample	character					nes-lter-chl-transect-underway-discrete
-salinity	Underway thermosalinograph salinity in practical salinity units. URI http://http://vocab.nerc.ac.uk/collection/P09/current/PSAL/	numeric	dimensionless				nes-lter-eims-toi-ncp-gop
+replicate	Lowercase letter indicating replicate subsample drawn from the same rosette bottle	character	 		 	Missing value	minimal-edi-package,nes-lter-chl-transect,nes-lter-doc-transect,nes-lter-nutrient-transect,nes-lter-poc-mvco,nes-lter-poc-transect
+replicate	Lowercase letter indicating replicate subsample drawn from the same rosette bottle or bucket	character			 	 	nes-lter-chl-mvco,nes-lter-nutrient-mvco
 salinity	salinity calculated according to the Practical Salinity Scale of 1978 when rosette bottle closed obtained from CTD bottle file	numeric	dimensionless			Missing value	nes-lter-attune-fcm-discrete-transect
+salinity	Underway thermosalinograph salinity in practical salinity units. URI http://http://vocab.nerc.ac.uk/collection/P09/current/PSAL/	numeric	dimensionless				nes-lter-eims-toi-ncp-gop
 sample_id	Identifier for subsample drawn from rosette bottle	numeric	dimensionless			Missing value	minimal-edi-package,nes-lter-nutrient-transect
 sample_type	Identifier for water column samples versus acidified MilliQ blanks	categorical					nes-lter-doc-transect
 samplelog_QC	result of quality control step in which .fcs filenames are compared to sample logs recorded during the cruise	categorical				Missing value	nes-lter-attune-fcm-discrete-transect
@@ -305,17 +306,17 @@ size_fraction	Size fraction of the computed rate	categorical					nes-lter-growth
 stableisotope_sizerange	smaller to larger range of um of sample sieves	categorical	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 station	longitudinal stations along established NES-LTER transect and MVCO; if station does not begin with an L, it is an opportunistic sample collected off of the longitudinal transect. 	character	dimensionless			Missing value	nes-lter-zooplankton-transect-inventory
 station	Station where sample was collected	numeric	dimensionless				nes-lter-fish-diet,nes-lter-fish-diet-isotope
-station	NES-LTER standard station from which sample was collected	character				Distance greater than 2 km from NES-LTER standard station	nes-lter-npp-transect
 station	NES-LTER standard station nearest to the sample location	character					nes-lter-trawl-transect-abundance
+station	NES-LTER standard station from which sample was collected	character				Distance greater than 2 km from NES-LTER standard station	nes-lter-npp-transect
 station	Station name used in the framework of the NES-LTER project	character					nes-lter-growth-grazing-chl
 station_distance	Distance from sample location to nearest NES-LTER standard station	numeric	kilometer			Not applicable	nes-lter-doc-transect
 station_distance	Distance from sample location to nearest station	numeric	kilometer			Distance to nearest station is greater than 2 km	nes-lter-nutrient-transect
 station_distance	distance from sample location to nearest NES-LTER station	numeric	kilometer			Distance greater than 2 km from NES-LTER station	nes-lter-attune-fcm-discrete-transect
 syn_biovolume_concentration	cubic micrometers per milliliter of seawater of Synechococcus (urn:lsid:marinespecies.org:taxname:160572) equivalent to Orange fluorescing prokaryote picophytoplankton https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	micrometerCubedPerMilliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
 syn_carbon_concentration	micrograms of carbon per liter of seawater of Synechococcus (urn:lsid:marinespecies.org:taxname:160572) equivalent to Orange fluorescing prokaryote picophytoplankton https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	microgramsPerLiter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-attune-transect-continuous,nes-lter-fcm-discrete-mvco
+syn_cells_per_ml	abundance per unit volume of Synechococcus (urn:lsid:marinespecies.org:taxname:160572) equivalent to Orange fluorescing prokaryote picophytoplankton http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 syn_cells_per_ml	abundance per unit volume of Synechococcus equivalent to Orange fluorescing prokaryote picophytoplankton http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	numberPerMilliliter			Missing value	nes-lter-picoeuk-mvco
 syn_cells_per_ml	abundance per milliliter of Synechococcus (urn:lsid:marinespecies.org:taxname:160572) equivalent to Orange fluorescing prokaryote picophytoplankton https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	numberPerMilliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
-syn_cells_per_ml	abundance per unit volume of Synechococcus (urn:lsid:marinespecies.org:taxname:160572) equivalent to Orange fluorescing prokaryote picophytoplankton http://vocab.nerc.ac.uk/collection/P01/current/SDBIOL01/ https://vocab.nerc.ac.uk/collection/F02/current/F0200003/	numeric	numberPerMilliliter			Missing value	nes-lter-attune-transect-continuous
 syn_filename	name of original .fcs file used to identify Synechococcus in this sample	character				Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 syn_volume_analyzed_ml	volume of seawater analyzed in milliliters during the flow cytometry run associated with Syn_filename	numeric	milliliter			Missing value	nes-lter-attune-fcm-discrete-transect,nes-lter-fcm-discrete-mvco
 temperature	Underway thermosalinograph temperature in degrees Celsius. URI http://vocab.nerc.ac.uk/collection/P01/current/TEMPSZ01/	numeric	celsius				nes-lter-eims-toi-ncp-gop
@@ -334,5 +335,6 @@ uniqueIdentifierFish	Unique identifier for fish specimen	character					nes-lter-
 verbatimIdentification	Taxon descriptive name  http://rs.tdwg.org/dwc/terms/verbatimIdentification	character					nes-lter-trawl-transect-abundance
 vernacularName	Common name of fish specimen	character					nes-lter-fish-diet-isotope
 vessel_tow_speed	Ship’s speed during tow	numeric	knot				nes-lter-trawl-transect-abundance
+vol_filt_L	Volume of seawater filtered to obtain POC sample	numeric	liter				nes-lter-npp-transect
 volume_analyzed_ml	volume of seawater analyzed per sample	numeric	milliliter			Missing value	nes-lter-attune-transect-continuous
 volume_imaged	Volume of seawater for which images were collected per sample.	numeric	milliliter			Missing value	nes-lter-ifcb-transect-winter-2018

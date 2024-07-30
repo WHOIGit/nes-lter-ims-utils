@@ -61,6 +61,7 @@ def find_data_files(owner, repo, token, file_patterns):
 def read_data_file(url):
     df = pd.DataFrame()
     df1 = pd.DataFrame()
+    df2 = pd.DataFrame()
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}"
     }
@@ -82,14 +83,19 @@ def read_data_file(url):
                         df = pd.read_excel(temp_file_path, sheet_name='ColumnHeadersCount') #trawl-transect-abundance
                         df1 = pd.read_excel(temp_file_path, sheet_name='ColumnHeadersMeta')
                     except ValueError as e:
-                        if 'Worksheet named' in str(e):
-                            print(f"Sheet 'ColumnHeaders' does not exist in the file: {url}")
-                        else:
-                            raise
-                        return None, None
+                        try:
+                            df = pd.read_excel(temp_file_path, sheet_name='ColumnHeadersDiscrete') #npp-transect
+                            df1 = pd.read_excel(temp_file_path, sheet_name='ColumnHeadersIntegrated')
+                            df2 = pd.read_excel(temp_file_path, sheet_name='ColumnHeadersPOC')
+                        except ValueError as e:
+                            if 'Worksheet named' in str(e):
+                                print(f"Sheet 'ColumnHeaders' does not exist in the file: {url}")
+                            else:
+                                raise
+                            return None, None, None
             except Exception as e:
                 print(f"An error occurred while processing the file: {url}")
-                return None, None
+                return None, None, None
             finally:
                 os.remove(temp_file_path)
                 
@@ -98,11 +104,11 @@ def read_data_file(url):
             df = pd.read_csv(url, sep='\t')
         except Exception as e:
             print(f"An error occurred while processing the file: {url}")
-            return None, None
+            return None, None, None
         finally:
             os.remove(temp_file_path)
         
-    return df, df1
+    return df, df1, df2
 
 def write_or_append_to_file(df, file_path):
     if not os.path.exists(file_path):
@@ -136,8 +142,6 @@ def find_files():
             matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_edi.xlsx"])
         elif repo_name == "nes-lter-zooplankton-transect-inventory":
             matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_Inventory.xlsx"])
-        elif repo_name == "nes-lter-npp-transect":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*attributes_*.txt"])
         elif repo_name == "nes-lter-chl-transect-underway-discrete":
             matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["attributes_*.txt"])
         elif repo_name == "nes-lter-chl-mvco":
@@ -150,15 +154,19 @@ def find_files():
             matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["attributes_*.txt"])
         for file in matching_files:
             print(f"Found: {file} in {owner}/{repo_name}")
-            df, df1 = read_data_file(file)
+            df, df1, df2 = read_data_file(file)
             if df is not None:
                 # Add repo column
                 df['repo'] = repo_name
-                write_or_append_to_file(df, output_file)
+                write_or_append_to_file(df, output_file)           
             if df1 is not None:
                 # Add repo column
                 df1['repo'] = repo_name
                 write_or_append_to_file(df1, output_file)
+            if df2 is not None:
+                # Add repo column
+                df2['repo'] = repo_name
+                write_or_append_to_file(df2, output_file)
             
             
     return matching_files

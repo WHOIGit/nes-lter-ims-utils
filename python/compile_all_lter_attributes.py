@@ -8,16 +8,18 @@ from io import StringIO
 import re
 import pandas as pd
 import csv
-
+from dotenv import load_dotenv
 import fnmatch
 import requests
 import tempfile
 
 GITHUB_API_URL = "https://api.github.com"
-GITHUB_TOKEN = ""  # Replace with your GitHub token
 output_file = 'all-lter-attributes.txt'
 
 current_dir = os.getcwd()
+load_dotenv()
+# read github token from your local .env file
+github_password = os.getenv('GITHUB_TOKEN')
 
 buffer = StringIO()
 
@@ -63,7 +65,7 @@ def read_data_file(url):
     df1 = pd.DataFrame()
     df2 = pd.DataFrame()
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}"
+        "Authorization": f"token {github_password}"
     }
     response = requests.get(url, headers=headers)
     response.raise_for_status()
@@ -129,7 +131,7 @@ def find_files():
     stack = [""]
 
     # Get repositories by topic
-    repos = get_repos_by_topic(topic, GITHUB_TOKEN)
+    repos = get_repos_by_topic(topic, github_password)
 
     # Search each repository for matching files
     for repo in repos:
@@ -137,21 +139,21 @@ def find_files():
         repo_name = repo["name"]
         print(f"Searching in repository: {owner}/{repo_name}")
         if repo_name == "nes-lter-fish-diet-isotope":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_Final.xlsx"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["*_Final.xlsx"])
         elif repo_name == "nes-lter-ifcb-transect-winter-2018":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_edi.xlsx"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["*_edi.xlsx"])
         elif repo_name == "nes-lter-zooplankton-transect-inventory":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_Inventory.xlsx"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["*_Inventory.xlsx"])
         elif repo_name == "nes-lter-chl-transect-underway-discrete":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["attributes_*.txt"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["attributes_*.txt"])
         elif repo_name == "nes-lter-chl-mvco":
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["attributes_*.txt"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["attributes_*.txt"])
         else:
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["*_Info.xlsx", "*-info.xlsx"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["*_Info.xlsx", "*-info.xlsx"])
         if len(matching_files) == 0:
             print(f"NO INFO XLSX FILE FOUND")
             # Look for attributes files
-            matching_files = find_data_files(owner, repo_name, GITHUB_TOKEN, ["attributes_*.txt"])
+            matching_files = find_data_files(owner, repo_name, github_password, ["attributes_*.txt"])
         for file in matching_files:
             print(f"Found: {file} in {owner}/{repo_name}")
             df, df1, df2 = read_data_file(file)

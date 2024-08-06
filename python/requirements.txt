@@ -1,0 +1,7 @@
+pandas
+matplotlib
+python-dotenv
+requests
+beautifulsoup4
+pymupdf
+xmldiff

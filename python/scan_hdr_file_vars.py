@@ -16,13 +16,15 @@ def parse_variable_line(line):
     return None
 
 def process_header_file(file_path, variable_counts):
+    used_in_this_file = set()
     try:
         with open(file_path, 'r', encoding='latin-1') as file:
             for line in file:
                 if line.startswith('# name'):
                     variable = parse_variable_line(line)
-                    if variable:
+                    if variable and not variable in used_in_this_file:
                         variable_counts[variable] += 1
+                        used_in_this_file.add(variable)
     except Exception as e:
         print(f"Error processing file {file_path}: {e}")
 

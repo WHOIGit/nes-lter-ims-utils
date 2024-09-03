@@ -1,0 +1,505 @@
+Compiling a list of API 1 outputs for all cruises.
+
+
+Compiling outputs for Events.
+Unique columns across all cruises:
+      Action
+        Cast
+     Comment
+  Instrument
+    Latitude
+   Longitude
+  Message ID
+     Station
+ Unnamed: 10
+ Unnamed: 11
+ Unnamed: 12
+ Unnamed: 13
+  Unnamed: 8
+  Unnamed: 9
+dateTime8601
+
+Compiling outputs for Metadata.
+Unique columns across all cruises:
+           cast
+         cruise
+           date
+    distance_km
+       latitude
+      longitude
+nearest_station
+
+Compiling outputs for Bottle Summary.
+Unique columns across all cruises:
+     cast
+   cruise
+     date
+    depth
+ latitude
+longitude
+   niskin
+
+Compiling outputs for Nutrient.
+Unique columns across all cruises:
+alternate_sample_id
+           ammonium
+               cast
+             cruise
+               date
+              depth
+        distance_km
+           latitude
+          longitude
+    nearest_station
+             niskin
+    nitrate_nitrite
+          phosphate
+         project_id
+          replicate
+          sample_id
+           silicate
+
+Compiling outputs for Chlorophyll.
+Unique columns across all cruises:
+          blank
+           cast
+            chl
+         cruise
+           date
+          depth
+ fd_calibration
+    filter_size
+       latitude
+      longitude
+         niskin
+          phaeo
+   quality_flag
+             ra
+       ra_blank
+             rb
+       rb_blank
+      replicate
+tau_calibration
+   vol_filtered
+
+Compiling outputs for Bottles.
+Unique columns across all cruises:
+       altm
+      c0s_m
+      c1s_m
+   c2_c1s_m
+       cast
+       cpar
+     cruise
+   cstarat0
+   cstartr0
+       date
+  density00
+  density11
+      depsm
+     dz_dtm
+  fleco_afl
+   latitude
+  longitude
+     niskin
+ oxsatmm_kg
+ oxsolmm_kg
+        par
+ potemp090c
+ potemp190c
+       prdm
+      sal00
+      sal11
+ sbeox0ml_l
+sbeox0mm_kg
+    sbeox0v
+    sbeox1v
+ sbox0mm_kg
+ sbox1mm_kg
+       scan
+   sigma_00
+   sigma_11
+  sigma_t00
+  sigma_t11
+       spar
+       svcm
+      svcm1
+      t090c
+      t190c
+   t2_t190c
+      timej
+      times
+turbwetntu0
+     upoly0
+         v0
+         v1
+         v2
+         v3
+         v4
+         v5
+         v6
+         v7
+    wetcdom
+
+Compiling outputs for Stations.
+Unique columns across all cruises:
+ comments
+    depth
+ latitude
+long_name
+longitude
+     name
+
+Compiling outputs for Underway Data.
+Unique columns across all cruises:
+              air_temperature_c
+                        aml_sst
+                        barom_p
+                        barom_s
+             barometer_decibars
+                            cog
+                        cog_deg
+                      cog_deg.1
+                           date
+            datetime_decimaldoy
+                  datetime_unix
+                        dec_lat
+                        dec_lon
+                        depth12
+                        depth35
+                   depth_meters
+                        dps_cog
+                          em122
+                          em124
+                          em710
+                    est_nitrate
+                  est_phosphate
+                           flow
+                            flr
+         fluorometer_turner_raw
+               gnss_abxtwo_brms
+               gnss_abxtwo_flag
+            gnss_abxtwo_gpstime
+            gnss_abxtwo_heading
+               gnss_abxtwo_mrms
+              gnss_abxtwo_pitch
+               gnss_abxtwo_roll
+                 gnss_adu2_brms
+                 gnss_adu2_flag
+              gnss_adu2_heading
+             gnss_adu2_latitude
+            gnss_adu2_longitude
+                 gnss_adu2_mrms
+                gnss_adu2_pitch
+                 gnss_adu2_roll
+             gnss_adu2_utcoffix
+                 gnss_adu5_brms
+                 gnss_adu5_flag
+              gnss_adu5_heading
+             gnss_adu5_latitude
+            gnss_adu5_longitude
+                 gnss_adu5_mrms
+                gnss_adu5_pitch
+                 gnss_adu5_roll
+             gnss_adu5_utcoffix
+          gps_furuno170_diffage
+             gps_furuno170_hdop
+         gps_furuno170_latitude
+        gps_furuno170_longitude
+          gps_furuno170_quality
+        gps_furuno170_satsinuse
+              gps_furuno170_smg
+              gps_furuno170_tmg
+         gps_furuno170_utcoffix
+             gps_furuno_diffage
+                gps_furuno_hdop
+            gps_furuno_latitude
+           gps_furuno_longitude
+             gps_furuno_quality
+           gps_furuno_satsinuse
+                 gps_furuno_smg
+                 gps_furuno_tmg
+            gps_furuno_utcoffix
+          gps_garmin741_diffage
+             gps_garmin741_hdop
+         gps_garmin741_latitude
+        gps_garmin741_longitude
+          gps_garmin741_quality
+        gps_garmin741_satsinuse
+              gps_garmin741_smg
+              gps_garmin741_tmg
+         gps_garmin741_utcoffix
+          gps_nstarwaas_diffage
+             gps_nstarwaas_hdop
+         gps_nstarwaas_latitude
+        gps_nstarwaas_longitude
+          gps_nstarwaas_quality
+        gps_nstarwaas_satsinuse
+              gps_nstarwaas_smg
+              gps_nstarwaas_tmg
+         gps_nstarwaas_utcoffix
+         gps_spectracom_diffage
+            gps_spectracom_hdop
+        gps_spectracom_latitude
+       gps_spectracom_longitude
+         gps_spectracom_quality
+       gps_spectracom_satsinuse
+             gps_spectracom_utc
+        gps_spectracom_utcoffix
+            gps_spectracom_year
+                  gyro1_heading
+                  gyro2_heading
+                            hdt
+                      humidity_
+         imu_spatialdual_alarms
+   imu_spatialdual_filtersource
+   imu_spatialdual_filterstatus
+        imu_spatialdual_fixtype
+      imu_spatialdual_hdg_stdev
+        imu_spatialdual_heading
+  imu_spatialdual_headingstddev
+          imu_spatialdual_heave
+       imu_spatialdual_heavecog
+    imu_spatialdual_heavejframe
+       imu_spatialdual_heavemax
+     imu_spatialdual_heavestern
+      imu_spatialdual_heaveunit
+ imu_spatialdual_navigationflag
+          imu_spatialdual_pitch
+    imu_spatialdual_pitch_stdev
+           imu_spatialdual_roll
+     imu_spatialdual_roll_stdev
+imu_spatialdual_statusalertflag
+              keel_depth_meters
+                   latitude_deg
+                  longitude_deg
+            met_rmy_bow_airtemp
+       met_rmy_bow_baropressure
+        met_rmy_bow_relhumidity
+          met_rmy_trans_airtemp
+     met_rmy_trans_baropressure
+     met_rmy_trans_precipcurrhr
+   met_rmy_trans_preciplast24hr
+     met_rmy_trans_preciplasthr
+       met_rmy_trans_preciprate
+      met_rmy_trans_relhumidity
+             met_rmy_trans_sst1
+             met_rmy_trans_sst5
+    met_rmy_transprecipcurr24hr
+                            par
+                  qsr_s_n_10367
+                        rad1_lw
+                        rad1_sw
+                        rad2_lw
+                        rad2_sw
+                         rad_lw
+                         rad_sw
+  relative_wind_direction_1_deg
+  relative_wind_direction_2_deg
+    relative_wind_speed_1_knots
+    relative_wind_speed_2_knots
+                   salinity_psu
+                         sbe45s
+                         sbe48t
+               science_log_text
+     singlebeam_knudsen_depthhf
+     singlebeam_knudsen_depthlf
+  singlebeam_knudsen_ducerdephf
+  singlebeam_knudsen_ducerdeplf
+  singlebeam_knudsen_soundspeed
+     singlebeam_knudsen_validhf
+     singlebeam_knudsen_validlf
+                            sog
+                      sog_knots
+                        sog_kts
+                            spd
+        speedlog_groundspeedfwd
+      speedlog_groundspeedtrans
+         speedlog_waterspeedfwd
+       speedlog_waterspeedtrans
+                       ssvdslog
+              time_truetime_hms
+          time_truetime_yearday
+        true_wind_direction_deg
+         true_wind_speed__knots
+              tsg1_conductivity
+        tsg1_fluorescence_ecofl
+ tsg1_fluorescence_ecofl_counts
+      tsg1_fluorescence_wetstar
+           tsg1_fluorometer1_v0
+           tsg1_fluorometer2_v1
+                  tsg1_salinity
+             tsg1_soundvelocity
+                 tsg1_spar_calc
+                   tsg1_spar_v2
+                       tsg1_sst
+               tsg1_temperature
+              tsg2_conductivity
+                  tsg2_salinity
+             tsg2_soundvelocity
+               tsg2_temperature
+     water_temperature_degree_c
+       wind_gill_bow_windreldir
+       wind_gill_bow_windrelspd
+       wind_gill_bow_windstatus
+      wind_gill_port_windreldir
+      wind_gill_port_windrelspd
+      wind_gill_port_windstatus
+        wind_gill_ps_windreldir
+        wind_gill_ps_windrelspd
+      wind_gill_stbd_windreldir
+      wind_gill_stbd_windrelspd
+      wind_gill_stbd_windstatus
+     wind_truewindbow_direction
+         wind_truewindbow_speed
+    wind_truewindport_direction
+        wind_truewindport_speed
+      wind_truewindps_direction
+          wind_truewindps_speed
+    wind_truewindstbd_direction
+        wind_truewindstbd_speed
+                        wxtp_dm
+                        wxtp_pa
+                        wxtp_rc
+                        wxtp_ri
+                        wxtp_sm
+                        wxtp_ta
+                        wxtp_td
+                        wxtp_ts
+                        wxtp_ua
+                        wxts_dm
+                        wxts_pa
+                        wxts_rc
+                        wxts_ri
+                        wxts_sm
+                        wxts_ta
+                        wxts_td
+                        wxts_ts
+                        wxts_ua
+
+Compiling outputs for Cast Data.
+Unique columns across all cruises:
+       altm
+      c0s_m
+      c1s_m
+   c2_c1s_m
+       cast
+       cpar
+     cruise
+   cstarat0
+   cstartr0
+       date
+      depsm
+    depsm_1
+     dz_dtm
+       flag
+  fleco_afl
+        gpa
+   latitude
+  longitude
+       nbin
+ oxsatmm_kg
+ oxsolmm_kg
+        par
+ potemp090c
+ potemp190c
+       prdm
+      pumps
+      sal00
+    sal00_1
+    sal00_2
+      sal11
+    sal11_1
+ sbeox0mg_l
+ sbeox0ml_l
+    sbeox0v
+    sbeox1v
+ sbox0mm_kg
+ sbox1mm_kg
+       scan
+   sigma_00
+ sigma_00_1
+   sigma_11
+ sigma_11_1
+       spar
+       svcm
+      svcm1
+     svcm_1
+      t090c
+      t190c
+   t2_t190c
+      timej
+      timeq
+      times
+      timey
+turbwetntu0
+  unnamed_0
+     upoly0
+         v0
+         v1
+         v2
+         v3
+         v4
+         v5
+         v6
+         v7
+    wetcdom
+
+Compiling outputs for HPLC Data.
+Unique columns across all cruises:
+               Allo
+           But-fuco
+           Chl_c1c2
+             Chl_c3
+           Chlide_a
+                 DP
+           DV_Chl_a
+           DV_Chl_b
+            Diadino
+              Diato
+               Fuco
+               Gyro
+           Hex-fuco
+                Lut
+           MV_Chl_a
+           MV_Chl_b
+                Neo
+                PPC
+           PPC_TCar
+            PPC_TPg
+                PSC
+           PSC_TCar
+                PSP
+            PSP_TPg
+              Perid
+            Phide_a
+           Phytin_a
+               Pras
+               TAcc
+         TAcc_TChla
+               TCar
+               TChl
+          TChl_TCar
+          TChla_Tpg
+                TPg
+          Tot_Chl_a
+          Tot_Chl_b
+          Tot_Chl_c
+              Viola
+                Zea
+     alpha-beta-Car
+alternate_sample_id
+               cast
+           comments
+             cruise
+               date
+              depth
+        distance_km
+           latitude
+          longitude
+    nearest_station
+             niskin
+         project_id
+          replicate
+          sample_id
+       vol_filtered

@@ -61,12 +61,12 @@ def find_calib_file_with_serial_number(url, serial_number, sensor_id):
 
     for file_name in new_file_names:
         if file_name.lower().endswith(".xml") and str(serial_number) in file_name:
-            if sensor_id.tag == "TemperatureSensor" and "T"+str(serial_number) in file_name:               
+            if not sensor_id:                     # match if sensors not temp or conduct
+                matching_files.append(file_name)
+            elif sensor_id.tag == "TemperatureSensor" and "T"+str(serial_number) in file_name:               
                 matching_files.append(file_name)
             elif sensor_id.tag == "ConductivitySensor" and "C"+str(serial_number) in file_name:               
-                matching_files.append(file_name)
-            elif not sensor_id:                     # match if sensors not temp or conduct
-                matching_files.append(file_name)
+                matching_files.append(file_name)            
             
     if not matching_files:
         for file_name in new_file_names:

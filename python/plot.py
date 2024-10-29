@@ -187,12 +187,13 @@ def review_data(args):
         os.makedirs(current_dir + "/plot_files")
     
     # for Sal00.1, Sal11.1 - AR cruises use the second set, EN cruises only have the first set
-    ar_primary_sensor_list = ["T090C", "Sal00.1", "C0S/m", "Sbeox0ML/L" ] #AR sensors
+    ar_primary_sensor_list = ["T090C", "Sal00.1", "C0S/m", "Sbeox0ML/L", "CStarTr0" ] #AR sensors
     ar_secondary_sensors = {
         "T090C":"T190C", 
         "Sal00.1":"Sal11.1",
         "C0S/m": "C1S/m", 
-        "Sbeox0ML/L": "Sbeox1ML/L"}
+        "Sbeox0ML/L": "Sbeox1ML/L",
+        "CStarTr0" : "none"}
     en_primary_sensor_list = ["T090C", "Sal00", "C0S/m", "Sbox0Mm/Kg", "CStarTr0" ] #EN sensors
     en_secondary_sensors = {
         "T090C":"T190C", 

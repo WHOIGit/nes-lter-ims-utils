@@ -48,16 +48,16 @@ def plot_data(primary_sensor, secondary_sensor, cruise_name, cast, df):
     plt.figure(figsize=(30, 15))
 
     plt.plot(df[primary_sensor], df['DepSM'], c='blue', marker='o', linestyle='-')
+    plt.tick_params(axis='both', which='major', labelsize=16)
     if secondary_sensor in df.columns:
        plt.plot(df[secondary_sensor], df['DepSM'], c='red', marker='o', linestyle='-')
-       plt.text(0.5, -0.1, secondary_sensor, color='red', transform=plt.gca().transAxes, fontsize=12)
-       plt.title(f'Depth vs {primary_sensor} & {secondary_sensor} for CTD Cast {cast} on Cruise {cruise_name}')
+       plt.text(0.5, -0.1, secondary_sensor, color='red', transform=plt.gca().transAxes, fontsize=22)
+       plt.title(f'Depth vs {primary_sensor} & {secondary_sensor} for CTD Cast {cast} on Cruise {cruise_name}', fontsize=22)
     else:
-       plt.title(f'Depth vs {primary_sensor} for CTD Cast {cast} on Cruise {cruise_name}')
-       plt.text(0.5, -0.1, f'No {secondary_sensor} data to plot', color='red', transform=plt.gca().transAxes, fontsize=12)
+       plt.title(f'Depth vs {primary_sensor} for CTD Cast {cast} on Cruise {cruise_name}', fontsize=22)
        
-    plt.text(0.35, -0.1, primary_sensor, color='blue', transform=plt.gca().transAxes, fontsize=12)    
-    plt.ylabel(f'Depth [salt water, m]')
+    plt.text(0.35, -0.1, primary_sensor, color='blue', transform=plt.gca().transAxes, fontsize=22)    
+    plt.ylabel(f'Depth [salt water, m]', fontsize=22)
     
     plt.gca().invert_yaxis()  # Invert y-axis to show increasing pressure from bottom to top
     if '/' in primary_sensor:
@@ -83,10 +83,10 @@ def plot_diff(primary_sensor, secondary_sensor, cruise_name, cast, df, args):
     # compute the difference between the two sensors
     diff = df[secondary_sensor] - df[primary_sensor]
     plt.plot(diff, df['DepSM'], c='blue', marker='o', linestyle='-')
-    plt.title(f'Depth vs Sensor Difference {secondary_sensor} minus {primary_sensor} for CTD Cast {cast} on Cruise {cruise_name}')
+    plt.title(f'Depth vs Sensor Difference {secondary_sensor} minus {primary_sensor} for CTD Cast {cast} on Cruise {cruise_name}', fontsize=22)
        
-    plt.text(0.35, -0.1, f'Sensor Difference - {secondary_sensor} minus {primary_sensor}', color='blue', transform=plt.gca().transAxes, fontsize=12)    
-    plt.ylabel(f'Depth [salt water, m]')
+    plt.text(0.35, -0.1, f'Sensor Difference - {secondary_sensor} minus {primary_sensor}', color='blue', transform=plt.gca().transAxes, fontsize=22)    
+    plt.ylabel(f'Depth [salt water, m]', fontsize=22)
 
     plt.gca().invert_yaxis()  # Invert y-axis to show increasing pressure from bottom to top
     if '/' in primary_sensor:
@@ -121,9 +121,9 @@ def temp_cond_diff(cruise_name, args):
             fig, ax1 = plt.subplots(figsize=(30, 15))
 
             ax1.plot(cond_diff, df['DepSM'], c='red', marker='o', linestyle='-')
-            ax1.set_xlabel(f'Conductivity Difference 2 - 1 [S/m]', color='red', fontsize=12)
+            ax1.set_xlabel(f'Conductivity Difference 2 - 1 [S/m]', color='red', fontsize=22)
             ax1.set_xlim(args.cond_min, args.cond_max)
-            ax1.set_ylabel(f'Depth [salt water, m]')
+            ax1.set_ylabel(f'Depth [salt water, m]', fontsize=22)
             ax1.tick_params('x', colors='red')
 
             # Create a second y-axis sharing the same x-axis
@@ -131,15 +131,15 @@ def temp_cond_diff(cruise_name, args):
 
             # Plot the second set of data on the top x-axis
             ax2.plot(temp_diff, df['DepSM'], c='blue', marker='o', linestyle='-')
-            ax2.set_xlabel(f'Temperature Difference [ITS-90, deg C]', color='blue', fontsize=12)
+            ax2.set_xlabel(f'Temperature Difference [ITS-90, deg C]', color='blue', fontsize=22)
             ax2.set_xlim(args.temp_min, args.temp_max)
-            ax2.set_ylabel(f'Depth [salt water, m]')
+            ax2.set_ylabel(f'Depth [salt water, m]', fontsize=22)
             ax2.tick_params('x', colors='blue')
 
             # Show the plot
             #plt.show()
 
-            plt.title(f'Depth vs Temperature and Conductivity Differences for CTD Cast {cast} on Cruise {cruise_name}', c = 'black')
+            plt.title(f'Depth vs Temperature and Conductivity Differences for CTD Cast {cast} on Cruise {cruise_name}', c = 'black', fontsize=22)
     
             plt.gca().invert_yaxis()  # Invert y-axis to show increasing pressure from bottom to top
  
@@ -193,12 +193,13 @@ def review_data(args):
         "Sal00.1":"Sal11.1",
         "C0S/m": "C1S/m", 
         "Sbeox0ML/L": "Sbeox1ML/L"}
-    en_primary_sensor_list = ["T090C", "Sal00", "C0S/m", "Sbox0Mm/Kg" ] #EN sensors
+    en_primary_sensor_list = ["T090C", "Sal00", "C0S/m", "Sbox0Mm/Kg", "CStarTr0" ] #EN sensors
     en_secondary_sensors = {
         "T090C":"T190C", 
         "Sal00":"Sal11",
         "C0S/m": "C1S/m", 
-        "Sbox0Mm/Kg": "Sbox1Mm/Kg"}
+        "Sbox0Mm/Kg": "Sbox1Mm/Kg",
+        "CStarTr0" : "none"}
     
     match = re.search(r'(AR|EN|HRS)\w*', asc_file_path)
     if match:

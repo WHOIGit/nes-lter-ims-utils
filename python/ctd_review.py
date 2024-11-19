@@ -3,6 +3,7 @@
 
 import argparse
 from ast import Try
+from importlib.metadata import files
 import xml.etree.ElementTree as ET
 import urllib.request
 from urllib.parse import urlparse, urlunparse
@@ -11,7 +12,7 @@ import requests
 import re
 from bs4 import BeautifulSoup
 from xmldiff import main as xmldiff_main, formatting
-import fitz  # PyMuPDF
+import fitz  #PyMuPDF
 from io import StringIO
 
 from glob import glob
@@ -92,7 +93,7 @@ def find_calib_file_with_serial_number(url, serial_number):
 def find_xmlcon_files(url):
     matching_files = []
     for file in glob(os.path.join(url, '*.XMLCON')):
-        if 'L011B11' not in file:     #en668
+        if 'L011B11' not in file and '_original.' not in file:     #en668, en720
             matching_files.append(file)
     return matching_files
 
@@ -200,7 +201,8 @@ def check_date(date):
         "%m/%d/%Y",
         "%Y%m%d",
         "%B %d, %Y",
-        "%Y-%b-%d"
+        "%Y-%b-%d",
+        "%d-%B-%Y"
     ]
     for date_format in date_formats:
         try:
@@ -275,13 +277,17 @@ def format_date(calib_date_text):
         short_month = parsed_date.strftime("%b")
         full_month = parsed_date.strftime("%B")
         num_month = parsed_date.strftime("%m")
+        strip_zero_month = parsed_date.strftime("%#m")
         day = str(int(parsed_date.strftime("%d")))
+        full_day = parsed_date.strftime("%d")
         year = parsed_date.strftime("%Y")
         short_year = parsed_date.strftime("%y")
         return {
             "mdy_dash": f"{day}-{short_month}-{short_year}",
+            "mdy_dash1": f"{full_day}-{full_month}-{year}",
             "mdy_comma": f"{full_month} {day}, {year}",
             "mdy_slash" : f"{num_month}/{day}/{year}",
+            "mdy_slash1" : f"{strip_zero_month}/{day}/{year}",
             "mdy_slash2" : f"{num_month}/{day}/{short_year}"
         }
     except:
@@ -304,22 +310,21 @@ def check_calibration_values(calib_element, sensor_root, buffer, serial_number):
             buffer.write(f"Checking {calib.tag}: {calib.text}\n")
             calib_value = format_calibration_value(calib.text)
             if calib_value != ValueError:
-                if calib_value in sensor_root:
+                if calib_value in sensor_root or calib.text in sensor_root:
                     buffer.write(f"Value check passed\n")
                 else:
                     buffer.write(f"Check FAILED: calibration {calib.tag} and {calib_value} not found in calib file\n")
                     record_failure(serial_number)
             else:
-                buffer.write(f"Check FAILED: calibration {calib.tag} and {calib.text} not found in calib file\n")
-                record_failure(serial_number)
-                    
                 for coef_calib in calib:     #check coefficients 
                     buffer.write(f"Checking {coef_calib.tag}: {coef_calib.text}\n")
-                    if coef_calib.text in sensor_root:
-                        buffer.write(f"Value check passed\n")
-                    else:
-                        buffer.write(f"Check FAILED: calibration {coef_calib.tag} and {coef_calib.text} not found in calib file\n")
-                        record_failure(serial_number)
+                    calib_value = format_calibration_value(calib.text)
+                    if calib_value != ValueError:
+                        if calib_value in sensor_root or calib.text in sensor_root:
+                            buffer.write(f"Value check passed\n")
+                        else:
+                            buffer.write(f"Check FAILED: calibration {coef_calib.tag} and {coef_calib.text} not found in calib file\n")
+                            record_failure(serial_number)
 
 def format_calibration_value(value):
     """Format calibration value by removing trailing zeros."""
@@ -427,10 +432,8 @@ def confirm_calibration(xmlcon_file_path, calib_file_path):
                     buffer.write(f"No Calibration file found with serial number {serial_number}\n")
  
                     
-def compare_all_xmlcon(xmlcon_file_path):
+def compare_xmlcon_files(files):
     diff_files = []
-    #'diffcheck' the .XMLCONs in the directory
-    files = find_xmlcon_files(xmlcon_file_path)
     
     def compare_xmls(observed,expected):
         formatter = formatting.DiffFormatter()
@@ -439,14 +442,17 @@ def compare_all_xmlcon(xmlcon_file_path):
     
     buffer.write(f"First XMLCON file: {files[0]}\n")
     buffer.write(f"Last XMLCON file: {files[len(files)-1]}\n")
+    print(f"First XMLCON file: {files[0]}")
+    print(f"Last XMLCON file: {files[len(files)-1]}\n")
 
     for i in range(len(files)):
         out = compare_xmls(files[0], files[i])
         if out != "":
             buffer.write(f"XMLCON file does not match: {files[i]}\n")
+            print(f"XMLCON file does not match: {files[i]}")
             diff_files.append((files[i], out))
     
-    return files[0], diff_files
+    return files, diff_files
 
 def check_btl_files(xmlcon_file_path):
     if '\\raw' in xmlcon_file_path:
@@ -460,46 +466,119 @@ def check_btl_files(xmlcon_file_path):
             '_up.' not in os.path.basename(hdr_file) and
             '_down.' not in os.path.basename(hdr_file)):
             btl_file = hdr_file[:-4] + '.btl'  # Replace the .hdr extension with .btl
-            # Check if the .btl file exists
-            if not os.path.exists(btl_file):
-                buffer.write(f"WARNING: No corresponding .btl file found for {hdr_file}\n")
+            bl_file = hdr_file[:-4] + '.bl'    #AE2426
+            # Check if the bottle file exists
+            if not (os.path.exists(btl_file) or os.path.exists(bl_file)):
+                buffer.write(f"WARNING: No corresponding .btl or .bl file found for {hdr_file}\n")
                 warning = True
             
     if not warning:
-        buffer.write(f"Verified a corresponding .btl file for each .hdr file in: {xmlcon_file_path}\n")
+        buffer.write(f"Verified a corresponding .btl or .bl file for each .hdr file in: {xmlcon_file_path}\n")
     buffer.write(f"\n")
+
+def get_xmlcon_groups(xmlcon_files):
+    casts = []
+    group_casts = {}
+    # calculate min and max cast number from file name
+    for file in xmlcon_files:
+        if '_TEST' not in file:   #AR61A
+            base_filename = os.path.basename(file)
+            parts = base_filename.split('_')
+            try:
+                cast = parts[1].split('.')[0]
+            except:
+                cast = base_filename.split('.')[0][-3:]  #AR34A001.xmlcon
+            cast = cast.lstrip("CAST")  #EN617_CAST01_L1.xmlcon
+            casts.append(cast)
+    # prompt user for number of groups with matching xmlcon files
+    groups = int(input("\nEnter the number of groups with matching xmlcon files: "))
+    for group_number in range(1, groups + 1):
+        while True:
+            try:
+                # prompt user for group cast number min and max
+                cast_min = int(input(f"Enter the min cast number for group {group_number}: "))
+                cast_max = int(input(f"Enter the max cast number for group {group_number}: "))
+                cast_min_str = f"{cast_min:0{len(cast)}d}"
+                cast_max_str = f"{cast_max:0{len(cast)}d}"
+                if cast_min_str in casts and cast_max_str in casts:
+                    if cast_min <= cast_max:
+                        group_casts[group_number] = (cast_min_str, cast_max_str)
+                        buffer.write(f"Group number {group_number}, cast {cast_min_str} to {cast_max_str}\n")
+                        break  # Exit loop if the input is valid
+                    else:
+                        print(f"Error: cast_min {cast_min} should be less than or equal to cast_max {cast_max}.")
+                else:
+                    print(f"Error: One or both of the values {cast_min} or {cast_max} are not in the available casts.")
+            except ValueError:
+                print("Invalid input, please enter integers.")
+
+    # Find xmlcon files that match the cast ranges for each group
+    min_group_files = []
+    group_files = []
+    for group_number, (cast_min_str, cast_max_str) in group_casts.items():
+        group_files.clear()
+        # Collect files that have cast numbers within the range
+        for file in xmlcon_files:
+            try:
+                cast = os.path.basename(file).split('_')[1].split('.')[0]
+            except:
+                cast = os.path.basename(file).split('.')[0][-3:] #AR34A001.xmlcon
+            cast = cast.lstrip("CAST")  #EN617_CAST01_L1.xmlcon
+            if cast_min_str == cast:
+                min_group_files.append(file)
+            if cast_min_str <= cast <= cast_max_str:
+                group_files.append(file)
+
+        result_files, diff_files = compare_xmlcon_files(group_files)
+        if diff_files:
+            print("Warning: XMLCON files in group do not match.")
+            buffer.write(f"Warning: XMLCON files in group do not match.\n")
+        else:
+            print("All XMLCON files in group match!")
+            buffer.write(f"All XMLCON files in group match!\n")
+
+    return min_group_files
 
 
 def review_data(xmlcon_file_path, calib_file_path):
+    group_files = []
     match = re.search(r'ship-provided_data_(.*?)\\', xmlcon_file_path)
     if match:
         cruise_name = match.group(1)
     else:
         print(f"Cruise name pattern not found in file path.")
         buffer.write(f"Cruise name pattern not found in file path.<br>")
-        
+ 
     if os.path.exists(xmlcon_file_path) and os.path.exists(calib_file_path):
         if "xmlcon" in xmlcon_file_path:
             confirm_calibration(xmlcon_file_path, calib_file_path)
         else:
-            result_file, diff_files = compare_all_xmlcon(xmlcon_file_path)
+            #'diffcheck' the .XMLCONs in the directory
+            files = find_xmlcon_files(xmlcon_file_path)
+            result_files, diff_files = compare_xmlcon_files(files)
             if not diff_files:
                 buffer.write(f"All .XMLCON files match!!!!\n")
                 buffer.write(f"\n")
+                group_files = [result_files[0]]
             else:
                 buffer.write(f"Reference README to see if there's a legitimate reason.\n")
                 buffer.write(f"\n")
+                # prompt user for matching groups of xmlcon files
+                group_files = get_xmlcon_groups(result_files)
+
             check_btl_files(xmlcon_file_path)
-            confirm_calibration(result_file, calib_file_path)  #check calibrations in the first xmlcon file
-            if diff_files:
-                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
-                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
-                buffer.write(f"\nChecking XMLCON File Differences.\n")
-                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
-                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
-                buffer.write(f"\n")
-                for file, diff in diff_files:
-                    confirm_calibration_diff(file, diff, calib_file_path)  #check calibrations in the difference in other xmlcon files
+           
+            for file in group_files:
+                confirm_calibration(file, calib_file_path)  #check calibrations in the first xmlcon file
+#            if diff_files:
+#                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
+#                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
+#                buffer.write(f"\nChecking XMLCON File Differences.\n")
+#                buffer.write(f"\n---------------------------------------------------------------------------------------------------\n")
+#                buffer.write(f"---------------------------------------------------------------------------------------------------\n")
+#                buffer.write(f"\n")
+#                for file, diff in diff_files:
+#                    confirm_calibration_diff(file, diff, calib_file_path)  #check calibrations in the difference in other xmlcon files
     else:
         buffer.write(f"ERROR: Required directory does not exist: {xmlcon_file_path}, {calib_file_path}\n")
             

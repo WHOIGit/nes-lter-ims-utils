@@ -202,7 +202,7 @@ def review_data(args):
         "Sbox0Mm/Kg": "Sbox1Mm/Kg",
         "CStarTr0" : "none"}
     
-    match = re.search(r'(AR|EN|HRS)\w*', asc_file_path)
+    match = re.search(r'(AR|EN|HRS|AE)\w*', asc_file_path)
     if match:
         cruise_name = match.group(0)
     else:

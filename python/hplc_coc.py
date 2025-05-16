@@ -1,19 +1,32 @@
 import os
+import sys
 
 import numpy as np
 import pandas as pd
 from urllib.error import HTTPError
 
+import argparse
+
 from neslter.parsing.utils import clean_column_names, wide_to_long
+
+# read command line arguments
+parser = argparse.ArgumentParser(description='Parse HPLC sample log and CTD metadata.')
+parser.add_argument('-b', '--base_dir', required=True, help='Base directory path containing the data root')
+parser.add_argument('-i', '--ims_host', required=True, help='IMS hostname')
+args = parser.parse_args()
+
+BASE_DIR = args.base_dir
+IMS_HOST = args.ims_host
 
 # Read and clean up sample log
 
 # your paths may vary
-DIR = '/Users/jfutrelle/Data/neslter/ims_data_root/raw/all/nut'
+DIR = os.path.join(BASE_DIR, 'ims_data_root', 'raw', 'all')
+
 assert os.path.exists(DIR)
 
 fname = 'LTER_sample_log.xlsx'
-path = os.path.join(DIR, '..', fname)
+path = os.path.join(DIR, fname)
 assert os.path.exists(path)
 
 print('reading sample log from', path)
@@ -53,7 +66,7 @@ def get_metadata(cruises):
     dfs = []
     for c in cruises:
         try:
-            url = 'https://nes-lter-data.whoi.edu/api/ctd/{}/metadata.csv'.format(c)
+            url = f'https://{IMS_HOST}/api/ctd/{c}/metadata.csv'
             dfs.append(pd.read_csv(url))
         except HTTPError:
             pass

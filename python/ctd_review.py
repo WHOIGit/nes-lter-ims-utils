@@ -202,7 +202,8 @@ def check_date(date):
         "%Y%m%d",
         "%B %d, %Y",
         "%Y-%b-%d",
-        "%d-%B-%Y"
+        "%d-%B-%Y",
+        "%Y-%m-%d"
     ]
     for date_format in date_formats:
         try:
@@ -271,24 +272,26 @@ def find_element_by_serial(elements, serial_number):
     return None
 
 def format_date(calib_date_text):
-    """Format the date from YYYY/MM/DD to different string representations."""
+    """Format the date  to different string representations."""
     try:
-        parsed_date = datetime.strptime(calib_date_text, "%m/%d/%Y")
+        for fmt in ("%m/%d/%Y", "%Y-%m-%d"):
+            parsed_date = datetime.strptime(calib_date_text, fmt)
+            break
+
         short_month = parsed_date.strftime("%b")
         full_month = parsed_date.strftime("%B")
         num_month = parsed_date.strftime("%m")
-        strip_zero_month = parsed_date.strftime("%#m")
         day = str(int(parsed_date.strftime("%d")))
         full_day = parsed_date.strftime("%d")
         year = parsed_date.strftime("%Y")
         short_year = parsed_date.strftime("%y")
+
         return {
             "mdy_dash": f"{day}-{short_month}-{short_year}",
             "mdy_dash1": f"{full_day}-{full_month}-{year}",
             "mdy_comma": f"{full_month} {day}, {year}",
-            "mdy_slash" : f"{num_month}/{day}/{year}",
-            "mdy_slash1" : f"{strip_zero_month}/{day}/{year}",
-            "mdy_slash2" : f"{num_month}/{day}/{short_year}"
+            "mdy_slash": f"{num_month}/{day}/{year}",
+            "mdy_slash2": f"{num_month}/{day}/{short_year}",
         }
     except:
         return ""

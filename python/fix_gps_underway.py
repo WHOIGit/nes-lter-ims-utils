@@ -20,7 +20,7 @@ def find_gps_file(url, min_file):
     # extract date from 1min file name
     extracted_value = match.group(1)
     
-    gps_regex_pattern = rf'.*GPS(\d+)_{re.escape(extracted_value)}_0000\.csv'
+    gps_regex_pattern = rf'.*GPS(\d+)_{re.escape(extracted_value)}_\d{{4}}\.csv'
 
     # Iterate through files in the directory
     for filename in os.listdir(url):
@@ -36,7 +36,7 @@ def find_ssw_file(url, min_file):
     # extract date from 1min file name
     extracted_value = match.group(1)
     
-    gps_regex_pattern = rf'.*SSW(\d+)_{re.escape(extracted_value)}_0000\.csv'
+    gps_regex_pattern = rf'.*SSW(\d+)_{re.escape(extracted_value)}_\d{{4}}\.csv'
 
     # Iterate through files in the directory
     for filename in os.listdir(url):
@@ -52,7 +52,7 @@ def find_1min_files(url):
         return matching_files
 
     # Compile a regex pattern for matching files
-    pattern = r'^[a-zA-Z]+\d+_0000\.csv$'
+    pattern = r'^[a-zA-Z]+\d+_\d{4}\.csv$'
     regex_pattern = re.compile(pattern)
 
     # Iterate through files in the directory

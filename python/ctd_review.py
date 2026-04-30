@@ -529,7 +529,7 @@ def get_xmlcon_groups(xmlcon_files):
             cast = cast.lstrip("CAST")  #EN617_CAST01_L1.xmlcon
             if cast_min_str == cast:
                 min_group_files.append(file)
-            if cast_min_str <= cast <= cast_max_str:
+            if int(cast_min_str) <= int(cast) <= int(cast_max_str):
                 group_files.append(file)
 
         result_files, diff_files = compare_xmlcon_files(group_files)

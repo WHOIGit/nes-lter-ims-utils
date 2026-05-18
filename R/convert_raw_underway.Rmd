@@ -1,0 +1,442 @@
+---
+title: "convert_raw_underway"
+output: html_document
+---
+
+# load required packages
+
+```{r}
+
+library(here)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+#remotes::install_github("WHOIGit/ediutilities")
+#library(ediutilities)
+library(lubridate)
+library(readr)
+library(easyr)
+
+```
+
+```{r}
+# # read gps01
+# 
+# gpsfiles <- as.data.frame(dir(here("input/HRS2601/gps01/raw"))) # get file names
+# 
+# gpsfiles$number <- right(gpsfiles$`dir(here("input/HRS2601/gps01/raw"))`, 5)
+# colnames(gpsfiles) <- c("filename", "number")
+# 
+# # read daily files to one data frame
+# for (df_row in 1:nrow(gpsfiles)) {
+#    gps <- read_csv(here(paste0("input/HRS2601/gps01/raw/", gpsfiles$filename)), col_names = FALSE)
+# }
+
+# #add column names for GGA rows                   
+# colnames(gps01) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+# gps01 <- gps01 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# # filter to use only the GGA rows                  
+# gps01 <- filter(gps01, NorS == "N") 
+# gps01$datetime <- strtrim(gps01$datetime_type, 27)
+# # select the needed columns
+# gps01 <- gps01 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+# 
+# #check fix quality
+# #  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+# gps01$FixQuality <- as.numeric(gps01$FixQuality)
+# hist(gps01$FixQuality)
+# 
+# gps01$lat_deg <- strtrim(gps01$Latitude, 2)
+# gps01$lat_min <-right(gps01$Latitude, 7)
+# gps01$lat_deg <- as.numeric(gps01$lat_deg)
+# gps01$lat_min <-as.numeric(gps01$lat_min)
+# gps01$lat_dec_min <- gps01$lat_min/60
+# gps01$dec_lat <- gps01$lat_deg + gps01$lat_dec_min 
+# 
+# gps01$lon_deg <- strtrim(gps01$Longitude, 3)
+# gps01$lon_min <-right(gps01$Longitude, 7)
+# gps01$lon_deg <- as.numeric(gps01$lon_deg)
+# gps01$lon_min <-as.numeric(gps01$lon_min)
+# gps01$lon_dec_min <- gps01$lon_min/60
+# gps01$dec_lon <- (gps01$lon_deg + gps01$lon_dec_min)*(-1)
+
+```
+
+## single file
+
+```{r}
+
+# 422
+gps422 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-22"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps422) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps422 <- gps422 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps422 <- filter(gps422, NorS == "N") 
+gps422$datetime <- strtrim(gps422$datetime_type, 27)
+# select the needed columns
+gps422 <- gps422 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps422$FixQuality <- as.numeric(gps422$FixQuality)
+hist(gps422$FixQuality)
+
+gps422$lat_deg <- strtrim(gps422$Latitude, 2)
+gps422$lat_min <-right(gps422$Latitude, 7)
+gps422$lat_deg <- as.numeric(gps422$lat_deg)
+gps422$lat_min <-as.numeric(gps422$lat_min)
+gps422$lat_dec_min <- gps422$lat_min/60
+gps422$dec_lat <- gps422$lat_deg + gps422$lat_dec_min 
+
+gps422$lon_deg <- strtrim(gps422$Longitude, 3)
+gps422$lon_min <-right(gps422$Longitude, 7)
+gps422$lon_deg <- as.numeric(gps422$lon_deg)
+gps422$lon_min <-as.numeric(gps422$lon_min)
+gps422$lon_dec_min <- gps422$lon_min/60
+gps422$dec_lon <- (gps422$lon_deg + gps422$lon_dec_min)*(-1)
+
+```
+
+```{r}
+
+# 423
+gps423 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-23"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps423) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps423 <- gps423 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps423 <- filter(gps423, NorS == "N") 
+gps423$datetime <- strtrim(gps423$datetime_type, 27)
+# select the needed columns
+gps423 <- gps423 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps423$FixQuality <- as.numeric(gps423$FixQuality)
+hist(gps423$FixQuality)
+
+gps423$lat_deg <- strtrim(gps423$Latitude, 2)
+gps423$lat_min <-right(gps423$Latitude, 7)
+gps423$lat_deg <- as.numeric(gps423$lat_deg)
+gps423$lat_min <-as.numeric(gps423$lat_min)
+gps423$lat_dec_min <- gps423$lat_min/60
+gps423$dec_lat <- gps423$lat_deg + gps423$lat_dec_min 
+
+gps423$lon_deg <- strtrim(gps423$Longitude, 3)
+gps423$lon_min <-right(gps423$Longitude, 7)
+gps423$lon_deg <- as.numeric(gps423$lon_deg)
+gps423$lon_min <-as.numeric(gps423$lon_min)
+gps423$lon_dec_min <- gps423$lon_min/60
+gps423$dec_lon <- (gps423$lon_deg + gps423$lon_dec_min)*(-1)
+
+```
+```{r}
+
+# 424
+gps424 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-24"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps424) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps424 <- gps424 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps424 <- filter(gps424, NorS == "N") 
+gps424$datetime <- strtrim(gps424$datetime_type, 27)
+# select the needed columns
+gps424 <- gps424 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps424$FixQuality <- as.numeric(gps424$FixQuality)
+hist(gps424$FixQuality)
+
+gps424$lat_deg <- strtrim(gps424$Latitude, 2)
+gps424$lat_min <-right(gps424$Latitude, 7)
+gps424$lat_deg <- as.numeric(gps424$lat_deg)
+gps424$lat_min <-as.numeric(gps424$lat_min)
+gps424$lat_dec_min <- gps424$lat_min/60
+gps424$dec_lat <- gps424$lat_deg + gps424$lat_dec_min 
+
+gps424$lon_deg <- strtrim(gps424$Longitude, 3)
+gps424$lon_min <-right(gps424$Longitude, 7)
+gps424$lon_deg <- as.numeric(gps424$lon_deg)
+gps424$lon_min <-as.numeric(gps424$lon_min)
+gps424$lon_dec_min <- gps424$lon_min/60
+gps424$dec_lon <- (gps424$lon_deg + gps424$lon_dec_min)*(-1)
+
+```
+```{r}
+
+# 425
+gps425 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-25"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps425) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps425 <- gps425 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps425 <- filter(gps425, NorS == "N") 
+gps425$datetime <- strtrim(gps425$datetime_type, 27)
+# select the needed columns
+gps425 <- gps425 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps425$FixQuality <- as.numeric(gps425$FixQuality)
+hist(gps425$FixQuality)
+
+gps425$lat_deg <- strtrim(gps425$Latitude, 2)
+gps425$lat_min <-right(gps425$Latitude, 7)
+gps425$lat_deg <- as.numeric(gps425$lat_deg)
+gps425$lat_min <-as.numeric(gps425$lat_min)
+gps425$lat_dec_min <- gps425$lat_min/60
+gps425$dec_lat <- gps425$lat_deg + gps425$lat_dec_min 
+
+gps425$lon_deg <- strtrim(gps425$Longitude, 3)
+gps425$lon_min <-right(gps425$Longitude, 7)
+gps425$lon_deg <- as.numeric(gps425$lon_deg)
+gps425$lon_min <-as.numeric(gps425$lon_min)
+gps425$lon_dec_min <- gps425$lon_min/60
+gps425$dec_lon <- (gps425$lon_deg + gps425$lon_dec_min)*(-1)
+
+```
+```{r}
+
+# 426
+gps426 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-26"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps426) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps426 <- gps426 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps426 <- filter(gps426, NorS == "N") 
+gps426$datetime <- strtrim(gps426$datetime_type, 27)
+# select the needed columns
+gps426 <- gps426 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps426$FixQuality <- as.numeric(gps426$FixQuality)
+hist(gps426$FixQuality)
+
+gps426$lat_deg <- strtrim(gps426$Latitude, 2)
+gps426$lat_min <-right(gps426$Latitude, 7)
+gps426$lat_deg <- as.numeric(gps426$lat_deg)
+gps426$lat_min <-as.numeric(gps426$lat_min)
+gps426$lat_dec_min <- gps426$lat_min/60
+gps426$dec_lat <- gps426$lat_deg + gps426$lat_dec_min 
+
+gps426$lon_deg <- strtrim(gps426$Longitude, 3)
+gps426$lon_min <-right(gps426$Longitude, 7)
+gps426$lon_deg <- as.numeric(gps426$lon_deg)
+gps426$lon_min <-as.numeric(gps426$lon_min)
+gps426$lon_dec_min <- gps426$lon_min/60
+gps426$dec_lon <- (gps426$lon_deg + gps426$lon_dec_min)*(-1)
+
+```
+```{r}
+
+# 427
+gps427 <- read_csv(here("input/HRS2601/gps01/raw/HS2501_gps01-2026-04-27"), show_col_types = FALSE)
+#add column names for GGA rows                   
+colnames(gps427) <- c("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum", "sixteen", "seventeen", "eighteen", "nineteen", "twenty")  
+gps427 <- gps427 |>  select("datetime_type","GPSTime","Latitude","NorS","Longitude","EorW","FixQuality","NumSats","HDOP","AntennaHeight","UnitsAntennaHeight","GeoidHeight","UnitGeoidHeight","ow", "CheckSum")               
+# filter to use only the GGA rows                  
+gps427 <- filter(gps427, NorS == "N") 
+gps427$datetime <- strtrim(gps427$datetime_type, 27)
+# select the needed columns
+gps427 <- gps427 |> select(datetime, Latitude, NorS, Longitude, EorW, FixQuality)
+
+#check fix quality
+#  from Definitions.txt: "0=invalid, 1=GPS, 2=DGPS, 3=PPS, 4=RTK, 5=Float RTK"
+gps427$FixQuality <- as.numeric(gps427$FixQuality)
+hist(gps427$FixQuality)
+
+gps427$lat_deg <- strtrim(gps427$Latitude, 2)
+gps427$lat_min <-right(gps427$Latitude, 7)
+gps427$lat_deg <- as.numeric(gps427$lat_deg)
+gps427$lat_min <-as.numeric(gps427$lat_min)
+gps427$lat_dec_min <- gps427$lat_min/60
+gps427$dec_lat <- gps427$lat_deg + gps427$lat_dec_min 
+
+gps427$lon_deg <- strtrim(gps427$Longitude, 3)
+gps427$lon_min <-right(gps427$Longitude, 7)
+gps427$lon_deg <- as.numeric(gps427$lon_deg)
+gps427$lon_min <-as.numeric(gps427$lon_min)
+gps427$lon_dec_min <- gps427$lon_min/60
+gps427$dec_lon <- (gps427$lon_deg + gps427$lon_dec_min)*(-1)
+
+```
+```{r}
+
+### join files
+
+gps01 <- rbind(gps422, gps423, gps424, gps425, gps426, gps427)
+
+gps01$datetimeISO <- gps01$datetime
+
+gps01$datetime <- as.POSIXct(gps01$datetimeISO, tz = "GMT", format = "%Y-%m-%dT%H:%M:%S")
+
+gps01 <- gps01 |> select(datetimeISO, datetime, dec_lat, dec_lon)
+
+ggplot(gps01, aes(x = datetime, y = dec_lat))+geom_point()
+ggplot(gps01, aes(x = datetime, y = dec_lon))+geom_point()
+                  
+elog <- read_csv(here("input/HRS2601/R2R_ELOG_HRS2601HS_FINAL_EVENTLOG_20260427_160219.csv"), show_col_types = FALSE)
+
+ggplot(elog, aes(x = Longitude, y = Latitude))+geom_point()
+ggplot(gps01, aes(x = dec_lon, y = dec_lat))+geom_point()
+ggplot(gps01, aes(x = dec_lon, y = dec_lat))+geom_point()+geom_point(data = elog, aes(x = Longitude, y = Latitude), color = "blue3")
+
+#ggplot(gps01, aes(x = datetimeCT, y = dec_lat))+geom_point()
+
+```
+```{r}
+# reduce data set to 1-minute timestamps
+
+gps01_minute0 <- subset(gps01, datetimeISO > "2026-04-22T11:49:59.125777Z")
+
+gps01$seconds <- second(gps01$datetime)
+gps01_1min <- subset(gps01,seconds == 0)
+
+gps01_1min <- gps01_1min |> select(-seconds)
+
+ggplot(gps01_1min, aes(x = dec_lon, y = dec_lat))+geom_point()+geom_point(data = elog, aes(x = Longitude, y = Latitude), color = "blue3")
+
+write_csv(gps01_1min, "output/hrs2601_gps_1minute.csv")
+
+```
+# Fluorometer
+
+```{r}
+
+fluorfiles <- as.data.frame(dir(here("input/HRS2601/flnturt/raw"))) # get file names
+
+fluorfiles$number <- right(fluorfiles$`dir(here("input/HRS2601/flnturt/raw"))`, 5)
+colnames(fluorfiles) <- c("filename", "number")
+
+# read daily files to one data frame
+for (df_row in 1:nrow(fluorfiles)) {
+   fluor <- read_tsv(here(paste0("input/HRS2601/flnturt/raw/", fluorfiles$filename)), col_names = FALSE)
+}
+
+colnames(fluor) <- c("datetime", "time","ChlChannel","ChlCount","TurbChannel", "TurbCount", "Auxiliary")  
+  
+fluor$datetime <- strtrim(fluor$datetime, 27)
+
+fluor$datetimeISO <- fluor$datetime
+
+fluor$datetime <- as.POSIXct(fluor$datetimeISO, tz = "GMT", format = "%Y-%m-%dT%H:%M:%S")
+
+fluor <- fluor |> select(-time) |> relocate(datetimeISO, .before = datetime)
+
+# Using FLNTU characterization sheet date March 6, 2026, S/N FLNTURT-090
+# chl
+## Scale factor 0.0121 ug/L/count
+## Dark counts = 50 counts
+## chl (ug/L) = scale factor x (output - dark counts)
+# turb
+## Scale factor = 0.0061 NTU/count # NTU = nephelometric turbidity unit
+## Dark counts = 50 counts
+## NTU = scale factor x (output -dark counts)
+
+fluor$chl_ugl <- (0.0121)*(fluor$ChlCount-50)
+fluor$turb_ntu <- (0.0061)*(fluor$TurbCount-50)
+
+ggplot(fluor, aes(x = datetime, y = chl_ugl))+geom_point()
+ggplot(fluor, aes(x = datetime, y = turb_ntu))+geom_point()
+
+fluor$time_floor <- floor_date(fluor$datetime, unit = "minutes")
+
+# calculate 1-minute average of chlorophyll and turbidity
+fluor_avg <- fluor |> group_by(time_floor) |> summarize(chl_ugl = mean(chl_ugl))
+turb_avg <- fluor |> group_by(time_floor) |> summarize(turb_ntu = mean(turb_ntu))
+fluor_avg <- fluor_avg |> rename(datetime = time_floor)
+turb_avg <- turb_avg |> rename(datetime = time_floor)
+
+# match 1-minute average to 1-minute instantaneous coordinates
+underway <- left_join(gps01_1min, fluor_avg)
+underway <- left_join(underway, turb_avg)
+
+# plot raw chl and turb
+ggplot(fluor, aes(x = datetime, y = chl_ugl))+geom_point()
+ggplot(fluor, aes(x = datetime, y = turb_ntu))+geom_point()
+
+# plot averaged timeseries
+ggplot(underway, aes(x = datetime, y = chl_ugl))+geom_point()
+ggplot(underway, aes(x = datetime, y = turb_ntu))+geom_point()
+
+
+```
+# Thermosalinograph
+
+```{r}
+
+tsgfiles <- as.data.frame(dir(here("input/HRS2601/sbe4501/raw"))) # get file names
+
+tsgfiles$number <- right(tsgfiles$`dir(here("input/HRS2601/sbe4501/raw"))`, 5)
+colnames(tsgfiles) <- c("filename", "number")
+
+# read daily files to one data frame
+for (df_row in 1:nrow(tsgfiles)) {
+   tsg <- read_csv(here(paste0("input/HRS2601/sbe4501/raw/", tsgfiles$filename)), col_names = FALSE)
+}
+
+colnames(tsg) <- c("datetime", "cond","sal")  
+
+tsg$temp <- right(tsg$datetime, 7)
+tsg$temp <- as.numeric(tsg$temp)
+tsg$datetimeISO <- strtrim(tsg$datetime, 27)
+  
+tsg$datetime <- as.POSIXct(tsg$datetimeISO, tz = "GMT", format = "%Y-%m-%dT%H:%M:%S")
+
+tsg$time_floor <- floor_date(tsg$datetime, unit = "minutes")
+
+# calculate 1-minute average of chlorophyll and turbidity
+temp_avg <- tsg |> group_by(time_floor) |> summarize(temp = mean(temp))
+cond_avg <- tsg |> group_by(time_floor) |> summarize(cond = mean(cond))
+sal_avg <- tsg |> group_by(time_floor) |> summarize(sal = mean(sal))
+
+temp_avg <- temp_avg |> rename(datetime = time_floor)
+cond_avg <- cond_avg |> rename(datetime = time_floor)
+sal_avg <- sal_avg |> rename(datetime = time_floor)
+
+# match 1-minute average to 1-minute instantaneous coordinates
+underway <- left_join(underway, temp_avg)
+underway <- left_join(underway, cond_avg)
+underway <- left_join(underway, sal_avg)
+
+# plot raw data
+ggplot(tsg, aes(x = datetime, y = temp))+geom_point()
+ggplot(tsg, aes(x = datetime, y = cond))+geom_point()
+ggplot(tsg, aes(x = datetime, y = sal))+geom_point()
+
+# plot averaged timeseries
+ggplot(underway, aes(x = datetime, y = temp))+geom_point()
+ggplot(underway, aes(x = datetime, y = cond))+geom_point()
+ggplot(underway, aes(x = datetime, y = sal))+geom_point()
+
+
+```
+
+```{r}
+
+# format and write file
+
+underway$date <- as.POSIXct(underway$datetime, tz = "GMT", format = "%Y-%m-%d %H:%M:%S+%z")
+underway$date <- as.character(paste0(underway$datetime, "+00:00"))
+
+underway <- underway |> 
+  rename(water_temperature_degree_c = temp) |> 
+  rename(conductivity_sm = cond) |> 
+  rename(salinity_psu = sal)
+
+write_csv(underway, "output/hrs2601_ISO_underway_noMet_noPAR_noPOS.csv")
+
+underway <- underway |> 
+  select(-datetimeISO, - datetime) |>
+  relocate(date, .before = dec_lat)
+
+write_csv(underway, "output/hrs2601_underway_noMet_noPAR_noPOS.csv")
+
+```
+
+
+
+

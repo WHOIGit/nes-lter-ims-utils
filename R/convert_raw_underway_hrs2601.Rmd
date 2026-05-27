@@ -7,6 +7,8 @@ output: html_document
 
 ```{r}
 
+Sys.setenv(TZ='GMT')
+
 library(here)
 library(dplyr)
 library(purrr)
@@ -16,6 +18,9 @@ library(ggplot2)
 library(lubridate)
 library(readr)
 library(easyr)
+library(tidyr)
+library(stringr)
+library(zoo)
 
 ```
 
@@ -436,6 +441,266 @@ underway <- underway |>
 write_csv(underway, "output/hrs2601_underway_noMet_noPAR_noPOS.csv")
 
 ```
+
+# POS data
+
+```{r}
+# here's a package that could be useful
+# install.packages("devtools")
+#devtools::install_github("paleolimbot/nmea")
+
+```
+
+```{r}
+# read one pos file line by line
+
+# pos422 <- read_lines(here("input/HRS2601/pos/raw/HS2501_pos-2026-04-22"))
+# 
+# pash422 <- str_subset(pos422, ".PASHR,.")
+# 
+# pash_lines <- as.data.frame(matrix(ncol = 12, nrow=0, dimnames = list(NULL, c("datetime_type","time","heading","heading_type","roll_deg","pitch_deg","heave_m","RollAccuacy","PitchAccuracy","HeadingAccuracy","IMUStatus","CheckSum"))))
+# 
+# for (i in 1:length(pash422)) {
+#     pashvec2<- unlist(strsplit(pash422[i], ","))
+#     pash_lines <- rbind(pash_lines, pashvec2)
+#          }   
+# colnames(pash_lines) <- c("datetime_type","time","heading","heading_type","roll_deg","pitch_deg","heave_m","RollAccuacy","PitchAccuracy","HeadingAccuracy","IMUStatus","CheckSum")
+```
+
+```{r}
+
+# read all pos files line by line
+
+posfiles <- as.data.frame(dir(here("input/HRS2601/pos/raw"))) # get file names
+
+posfiles$number <- right(posfiles$`dir(here("input/HRS2601/pos/raw"))`, 5) # extract date from file name
+colnames(posfiles) <- c("filename", "number") # add column headers to file name dataframe
+
+# initialize data frame to be filled by for loop
+pash <- as.data.frame(matrix(ncol = 12, nrow=0, dimnames = list(NULL, c("datetime_type","time","heading","heading_type","roll_deg","pitch_deg","heave_m","RollAccuacy","PitchAccuracy","HeadingAccuracy","IMUStatus","CheckSum"))))
+
+# read daily files to one data frame
+for (df_row in 1:nrow(posfiles)) {
+   pos <- read_lines(here("input/HRS2601/pos/raw/", posfiles$filename))
+   pash_lines <- str_subset(pos, ".PASHR,.")
+   }
+
+for (i in 1:length(pash_lines)) {
+    pashvec<- unlist(strsplit(pash_lines[i], ","))
+    pash <- rbind(pash, pashvec)
+} 
+
+colnames(pash) <- c("datetime_type","time","heading","heading_type","roll_deg","pitch_deg","heave_m","RollAccuacy","PitchAccuracy","HeadingAccuracy","IMUStatus","CheckSum")
+
+unique(pash$IMUStatus) # "2" "0" "1"
+
+write_csv(pash, "output/hrs2601_pash.csv")
+
+```
+
+```{r}
+# format pash
+
+# read in if needed
+pash <- read_csv(here("output/hrs2601_pash.csv"), show_col_types = FALSE)
+colnames(pash) <- c("datetime_type","time","heading","heading_type","roll_deg","pitch_deg","heave_m","RollAccuacy","PitchAccuracy","HeadingAccuracy","IMUStatus","CheckSum")
+
+pash$type <-right(pash$datetime_type, 7)
+pash$datetimeISO <- strtrim(pash$datetime_type, 27)
+
+pash$datetime <- as.POSIXct(pash$datetimeISO, tz = "GMT", format = "%Y-%m-%dT%H:%M:%S")
+pash$seconds <- second(pash$datetime)
+
+pash <- pash |> 
+  select(-datetime_type, -time, -CheckSum) |> 
+  relocate(datetime, .before = heading) |> 
+  relocate(datetimeISO, .before = datetime)
+
+pash <- pash |> mutate_at(c('heading', 'roll_deg', 'pitch_deg', 'heave_m', 'IMUStatus'), as.numeric)
+
+# decided not to use averaging
+# # calculate 1-minute rolling average
+# pash <- pash |> mutate(heading_1min = rollmean(heading, k = 60, fill = c(heading, "extend", "extend")))
+# pash <- pash |> mutate(pitch_1min = rollmean(pitch_deg, k = 60, fill = c(pitch_deg, "extend", "extend")))
+# pash <- pash |> mutate(roll_1min = rollmean(roll_deg, k = 60, fill = c(roll_deg, "extend", "extend")))
+# pash <- pash |> mutate(heave_1min = rollmean(heave_m, k = 60, fill = c(heave_m, "extend", "extend")))
+# pash <- pash |> mutate(IMUStatus_1min = rollmean(IMUStatus, k = 60, fill = c(IMUStatus, "extend", "extend")))
+
+#ggplot(pash, aes(x = datetime, y = heading))+geom_point()+geom_point(data = pash, aes(x = datetime, y = heading_1min), color = "blue3")
+
+#ggplot(pash, aes(x = datetime, y = roll_deg))+geom_point()+geom_point(data = pash, aes(x = datetime, y = roll_1min), color = "blue3")
+
+#ggplot(pash, aes(x = datetime, y = pitch_deg))+geom_point()+geom_point(data = pash, aes(x = datetime, y = pitch_1min), color = "blue3")
+
+pash_1min <- subset(pash,seconds == 0)
+unique(pash_1min$IMUStatus) #2
+pash_1min <- pash_1min |> select(datetime, heading, heading_type, roll_deg, pitch_deg, heave_m)
+
+#ggplot(pash_1min, aes(x = datetime, y = pitch_deg))+geom_point()+geom_point(data = pash_1min, aes(x = datetime, y = pitch_1min), color = "blue3")
+
+```
+
+```{r}
+# join with other 1-min data
+
+underway <- read_csv("output/hrs2601_ISO_underway_noMet_noPAR_noPOS.csv")
+underway <- underway |> select(-datetimeISO)
+
+underway_p <- left_join(underway, pash_1min)
+
+underway_p$date <- format(underway$datetime, format = "%Y-%m-%d %H:%M:%S%z")
+
+underway_p <- underway_p |> relocate(date, .before = datetime)
+
+write_csv(underway_p, "output/hrs2601_underway_noMet_noPAR_pash.csv")
+
+```
+
+```{r}
+
+# read $INVTG lines for ship speed
+
+posfiles <- as.data.frame(dir(here("input/HRS2601/pos/raw"))) # get file names
+
+posfiles$number <- right(posfiles$`dir(here("input/HRS2601/pos/raw"))`, 5) # extract date from file name
+colnames(posfiles) <- c("filename", "number") # add column headers to file name dataframe
+
+# initialize data frame to be filled by for loop
+vtg <- as.data.frame(matrix(ncol = 7, nrow=0, dimnames = list(NULL, c("datetime_type","courseTrue","courseMag","speedKt","speedKm","mode","CheckSum"))))
+
+# read daily files to one data frame
+for (df_row in 1:nrow(posfiles)) {
+   pos <- read_lines(here("input/HRS2601/pos/raw/", posfiles$filename))
+   vtg_lines <- str_subset(pos, ".INVTG,.")
+   }
+
+for (i in 1:length(vtg_lines)) {
+    vtgvec<- unlist(strsplit(vtg_lines[i], ","))
+    vtg <- rbind(vtg, vtgvec)
+} 
+
+colnames(vtg) <- c("datetime_type","courseTrue","courseTypeT","courseMag", "courseTypeM", "speedKt","speedTypeNaut","speedKm", "speedTypeKM","CheckSum")
+
+write_csv(vtg, "output/hrs2601_vtg.csv")
+
+```
+
+```{r}
+
+# format vtg
+
+# read in if needed
+vtg <- read_csv(here("output/hrs2601_vtg.csv"), show_col_types = FALSE)
+colnames(vtg) <- c("datetime_type","courseTrue","courseTypeT","courseMag", "courseTypeM", "speedKt","speedTypeNaut","speedKm", "speedTypeKM","CheckSum")
+
+vtg$type <-right(vtg$datetime_type, 7)
+vtg$datetimeISO <- strtrim(vtg$datetime_type, 27)
+
+vtg$datetime <- as.POSIXct(vtg$datetimeISO, tz = "GMT", format = "%Y-%m-%dT%H:%M:%S")
+vtg$seconds <- second(vtg$datetime)
+
+# vtg <- vtg |> 
+#   select(-datetime_type, -CheckSum) |> 
+#   relocate(datetime, .before = heading) |> 
+#   relocate(datetimeISO, .before = datetime)
+
+vtg <- vtg |> mutate_at(c('courseTrue', 'courseMag', 'speedKt', 'speedKm'), as.numeric)
+
+# decided not to use averaging
+
+ggplot(vtg, aes(x = datetime, y = courseTrue))+geom_point()+geom_point(data = vtg, aes(x = datetime, y = courseMag), color = "blue3")
+
+ggplot(vtg, aes(x = datetime, y = speedKt))+geom_point()
+ggplot(vtg, aes(x = datetime, y = speedKm))+geom_point()
+
+vtg_1min <- subset(vtg,seconds == 0)
+vtg_1min <- vtg_1min |> select(datetimeISO, datetime, courseTrue, speedKt, speedKm)
+write_csv(vtg_1min, "output/hrs2601_vtg_1min.csv")
+
+ggplot(vtg, aes(x = datetime, y = courseTrue))+geom_point()+geom_point(data = vtg_1min, aes(x = datetime, y = courseTrue), color = "blue3")
+
+ggplot(vtg, aes(x = datetime, y = speedKt))+geom_point()+geom_point(data = vtg_1min, aes(x = datetime, y = speedKt), color = "blue3")
+
+ggplot(vtg, aes(x = datetime, y = speedKm))+geom_point()+geom_point(data = vtg_1min, aes(x = datetime, y = speedKm), color = "blue3")
+
+```
+
+```{r}
+
+# fix some errors due to rounding of seconds
+
+sum(duplicated(vtg_1min$datetime))
+
+vtg_1min <- distinct(vtg_1min, datetime, .keep_all = TRUE)
+sum(duplicated(vtg_1min$datetime))
+
+vtg_1min_check <- filter(vtg_1min, datetimeISO == "2026-04-25T23:57:00.143562Z")
+vtg_1min <- filter(vtg_1min, datetimeISO != "2026-04-25T23:57:00.143562Z")
+sum(duplicated(vtg_1min$datetime))
+
+vtg_1min_corr <- read_csv("output/hrs2601_vtg_seconds_corr.csv")
+
+vtg_1min <- rbind(vtg_1min, vtg_1min_corr)
+
+sum(duplicated(vtg_1min$datetime))
+
+#vtg_1min <- vtg_1min[order(vtg_1min$datetime), ]
+
+vtg_1min <- vtg_1min |> arrange(datetime)
+
+vtg_1min <- distinct(vtg_1min, datetime, .keep_all = TRUE)
+
+```
+
+
+```{r}
+
+# join with other 1-min data
+
+underway_p <- read_csv("output/hrs2601_underway_noMet_noPAR_pash.csv")
+
+underway_p <- filter(underway_p, !is.na(heading))
+sum(duplicated(underway_p$datetime))
+
+underway_p_corr <- read_csv("output/hrs2601_pash_seconds_corr.csv")
+
+underway_p <- rbind(underway_p, underway_p_corr)
+
+sum(duplicated(underway_p$datetime))
+
+underway_p <- underway_p |> arrange(datetime)
+sum(duplicated(underway_p$datetime))
+
+underway_v <- left_join(underway_p, vtg_1min)
+sum(duplicated(underway_v$datetime))
+
+# check for dupliates and weirdness
+
+underway_v_check <- filter(underway_v, is.na(speedKt))
+match(vtg_1min$datetime, underway_p$datetime)
+match_check <- as.data.frame(match_check)
+match_check$row_num <- row_number(match_check)
+match_check$diff <- match_check$match_check - match_check$row_num
+unique(match_check$diff)
+
+# compare heading variables, heading true from pash lines and course true from vtg lines
+ggplot(underway_v, aes(x = datetime, y = heading))+geom_point()+geom_point(data = underway_v, aes(x = datetime, y = courseTrue), color = "blue3")
+# almost identical, don't think we need both
+
+underway_v <- underway_v |> select(-datetime, -courseTrue)
+underway_v <- underway_v |> rename(speed_kt = speedKt) |> rename(speed_km = speedKm)
+
+underway_v$date <- format(underway_v$date, format = "%Y-%m-%d %H:%M:%S%z")
+underway_v <- underway_v |> relocate(datetimeISO, .after = date)
+
+write_csv(underway_v, "output/hrs2601_underway_noMet_noPAR.csv")
+
+```
+
+
+
+
+
 
 
 

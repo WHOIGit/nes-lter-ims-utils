@@ -5,3 +5,4 @@ requests
 beautifulsoup4
 pymupdf
 xmldiff
+git+https://github.com/WHOIGit/nes-lter-utilities
